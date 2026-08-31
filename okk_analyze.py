@@ -354,7 +354,7 @@ def main():
     pending = [r for r in rows if r.get("doc_url", "").strip()]
 
     # уже разобранные — по ID сделки
-    ensure_tab(values)
+    ensure_tab(sheets)
     done_rows = values.get(spreadsheetId=MARKETING_SHEET_ID,
                            range="'%s'!A2:B100000" % OKK_TAB).execute().get("values", [])
     done = {r[1].strip() for r in done_rows if len(r) > 1 and r[1].strip()}
