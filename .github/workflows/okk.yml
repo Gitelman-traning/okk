@@ -1,0 +1,34 @@
+name: ОКК — разбор диагностик
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Сколько встреч разобрать за прогон'
+        required: false
+        default: '3'
+      model:
+        description: 'Модель OpenRouter (пусто = выбрать бесплатную автоматически)'
+        required: false
+        default: ''
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python okk_analyze.py
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          CHECKLIST_JSON: ${{ secrets.CHECKLIST_JSON }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          LIMIT: ${{ inputs.limit }}
+          OKK_MODEL: ${{ inputs.model }}

@@ -1,0 +1,6 @@
+.env
+checklist.local.json
+out/
+__pycache__/
+*.pyc
+.venv/
