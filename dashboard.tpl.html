@@ -57,6 +57,13 @@ header .sub{margin:0;font-size:11.5px;color:var(--muted)}
 header .spacer{flex:1}
 .stamp{border:1px solid var(--line-strong);padding:5px 9px;font-size:10.5px;
   text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}
+.nav{display:inline-flex;border:1px solid var(--line-strong)}
+.nav a{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted);padding:6px 11px;text-decoration:none;border-left:1px solid var(--line-strong)}
+.nav a:first-child{border-left:0}
+.nav a.on{background:var(--accent-soft);color:var(--accent)}
+td a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent}
+td a:hover{border-bottom-color:var(--accent)}
 .themer{display:inline-flex;border:1px solid var(--line-strong)}
 .themer button{font-family:inherit;font-size:10.5px;font-weight:800;text-transform:uppercase;
   letter-spacing:.07em;background:none;border:0;border-left:1px solid var(--line-strong);
@@ -89,8 +96,10 @@ thead th{position:sticky;top:0;z-index:3;background:var(--surface-3);
 thead th.group{text-align:center;color:var(--accent)}
 thead th[aria-sort="descending"]::after{content:" ↓"}
 thead th[aria-sort="ascending"]::after{content:" ↑"}
-th.c1{left:0;z-index:4} td.c1{position:sticky;left:0;background:var(--surface);z-index:2;
-  border-right:1px solid var(--line-strong);font-weight:700}
+th.c1{left:0;z-index:4} th.c2{left:104px;z-index:4}
+td.c1,td.c2{position:sticky;background:var(--surface);z-index:2}
+td.c1{left:0;font-variant-numeric:tabular-nums}
+td.c2{left:104px;border-right:1px solid var(--line-strong);font-weight:700}
 tbody tr{cursor:pointer}
 tbody tr:hover td{background:var(--surface-2)}
 tbody tr.sel td{background:var(--accent-soft)}
@@ -160,6 +169,7 @@ a{color:var(--accent)}
       <h1>ОКК · Разбор диагностик</h1>
       <p class="sub">Расшифровка → счётчики кодом → оценка моделью → разбор по каждой встрече</p>
     </div>
+    <nav class="nav"><a class="on" href="./">Встречи</a><a href="stats.html">Статистика</a></nav>
     <div class="spacer"></div>
     <div class="themer" role="group" aria-label="Тема оформления">
       <button type="button" data-set="auto" aria-pressed="true">Авто</button>
@@ -172,6 +182,8 @@ a{color:var(--accent)}
   <div class="summary" id="summary"></div>
 
   <div class="bar">
+    <label for="fm">Менеджер</label>
+    <select id="fm"><option value="">все</option></select>
     <label for="fs">Цель</label>
     <select id="fs">
       <option value="">любая</option>
@@ -189,7 +201,10 @@ a{color:var(--accent)}
     <table id="grid">
       <thead>
         <tr>
-          <th class="c1" data-sort="client">Клиент</th>
+          <th class="c1" data-sort="held">Когда</th>
+          <th class="c2" data-sort="client">Клиент</th>
+          <th data-sort="mgr">Менеджер</th>
+          <th>Ссылки</th>
           <th data-sort="goal">Цель встречи</th>
           <th data-sort="achieved">Цель</th>
           <th data-sort="prob">Вер.</th>
@@ -249,6 +264,12 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){
 function cls(v){return v==null?"s-none":v>=75?"s-ok":v>=55?"s-warn":"s-bad"}
 function goalPill(g){var c=g==="Да"?"ok":g==="Частично"?"warn":g==="Нет"?"bad":"idle";
   return '<span class="pill '+c+'">'+esc(g||"—")+'</span>'}
+function dateKey(s){
+  var m=/^(\d{1,2})[.](\d{1,2})[.](\d{2,4})/.exec(String(s||""));
+  if(!m) return "";
+  var y=m[3].length===2?"20"+m[3]:m[3];
+  return y+("0"+m[2]).slice(-2)+("0"+m[1]).slice(-2);
+}
 function avg(list){var v=list.filter(function(x){return typeof x==="number"});
   return v.length?Math.round(v.reduce(function(a,b){return a+b},0)/v.length):null}
 
@@ -279,7 +300,7 @@ document.getElementById("foot").innerHTML =
       +'</span><span class="n">'+c[2]+'</span></div>'}).join("");
 })();
 
-var tbody=document.getElementById("rows"), sortKey="client", sortDir=1, view=[];
+var tbody=document.getElementById("rows"), sortKey="held", sortDir=-1, view=[];
 
 function rowHtml(d,i){
   var sc=d.s.map(function(v){return '<td class="sc '+cls(v)+'">'+(v==null?"—":v)+'</td>'}).join("");
@@ -287,8 +308,14 @@ function rowHtml(d,i){
   if(!d.next_date) flags+='<span class="flag">нет даты</span>';
   if(d.s[4]!=null&&d.s[4]<40) flags+='<span class="flag">не закрыл</span>';
   if(!d.komitet) flags+='<span class="flag">без комитета</span>';
+  var links="";
+  if(d.amo) links+='<a href="'+esc(d.amo)+'" target="_blank" rel="noopener">сделка</a> ';
+  if(d.zoom) links+='<a href="'+esc(d.zoom)+'" target="_blank" rel="noopener">запись</a>';
   return '<tr data-i="'+i+'" tabindex="0">'
-    +'<td class="c1">'+esc(d.client||"—")+'</td>'
+    +'<td class="c1">'+esc(d.held||"—")+'</td>'
+    +'<td class="c2">'+esc(d.client||"—")+'</td>'
+    +'<td>'+esc(d.mgr||"—")+'</td>'
+    +'<td>'+(links||"—")+'</td>'
     +'<td class="clip">'+esc(d.goal)+'</td>'
     +'<td>'+goalPill(d.achieved)+'</td>'
     +'<td class="num">'+(d.prob==null?"—":d.prob+"%")+'</td>'
@@ -301,11 +328,13 @@ function rowHtml(d,i){
 }
 
 function apply(){
-  var fs=document.getElementById("fs").value,
+  var fm=document.getElementById("fm").value,
+      fs=document.getElementById("fs").value,
       fp=document.getElementById("fp").checked,
       fd=document.getElementById("fd").checked;
   view=DATA.map(function(d,i){return {d:d,i:i}}).filter(function(x){
     var d=x.d;
+    if(fm && d.mgr!==fm) return false;
     if(fs && d.achieved!==fs) return false;
     if(fp && !d.s.some(function(v){return v!=null&&v<55})) return false;
     if(fd && d.next_date) return false;
@@ -313,7 +342,8 @@ function apply(){
   });
   view.sort(function(a,b){
     var k=sortKey,A,B;
-    if(k.charAt(0)==="s"&&k.length===2){A=a.d.s[+k.charAt(1)];B=b.d.s[+k.charAt(1)]}
+    if(k==="held"){A=dateKey(a.d.held);B=dateKey(b.d.held)}
+    else if(k.charAt(0)==="s"&&k.length===2){A=a.d.s[+k.charAt(1)];B=b.d.s[+k.charAt(1)]}
     else if(k==="prob"||k==="questions"||k==="komitet"){A=a.d[k];B=b.d[k]}
     else if(k==="scarcity"){A=a.d.scarcity?1:0;B=b.d.scarcity?1:0}
     else {A=String(a.d[k]||"");B=String(b.d[k]||"")}
@@ -333,7 +363,7 @@ document.querySelectorAll("thead th[data-sort]").forEach(function(th){
     apply();
   });
 });
-["fs","fp","fd"].forEach(function(id){document.getElementById(id).addEventListener("change",apply)});
+["fm","fs","fp","fd"].forEach(function(id){document.getElementById(id).addEventListener("change",apply)});
 
 var drawer=document.getElementById("drawer");
 function openRow(i){
@@ -342,7 +372,10 @@ function openRow(i){
   var tr=tbody.querySelector('tr[data-i="'+i+'"]'); if(tr) tr.classList.add("sel");
   document.getElementById("d-title").textContent=d.client||"Встреча";
   document.getElementById("d-meta").innerHTML =
-    "сделка " + esc(d.deal_id) + (d.amo?' · <a href="'+esc(d.amo)+'" target="_blank" rel="noopener">карточка в amoCRM</a>':"")
+    esc(d.held||"") + " · " + esc(d.mgr||"менеджер не указан")
+    + (d.amo?' · <a href="'+esc(d.amo)+'" target="_blank" rel="noopener">сделка</a>':"")
+    + (d.zoom?' · <a href="'+esc(d.zoom)+'" target="_blank" rel="noopener">запись встречи</a>':"")
+    + (d.passcode?' (код '+esc(d.passcode)+')':"")
     + (d.doc?' · <a href="'+esc(d.doc)+'" target="_blank" rel="noopener">расшифровка</a>':"");
 
   var html='<div><h3>Резюме встречи</h3><p>'+esc(d.summary)+'</p></div>';
@@ -386,11 +419,21 @@ function openRow(i){
 function closeDrawer(){drawer.classList.remove("open");drawer.setAttribute("aria-hidden","true")}
 document.getElementById("d-close").addEventListener("click",closeDrawer);
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeDrawer()});
-tbody.addEventListener("click",function(e){var tr=e.target.closest("tr");if(tr)openRow(+tr.getAttribute("data-i"))});
+tbody.addEventListener("click",function(e){
+  if(e.target.closest("a")) return;          // клик по ссылке — уходим по ней, панель не трогаем
+  var tr=e.target.closest("tr"); if(tr) openRow(+tr.getAttribute("data-i"));
+});
 tbody.addEventListener("keydown",function(e){
   if(e.key!=="Enter"&&e.key!==" ")return;
   var tr=e.target.closest("tr"); if(tr){e.preventDefault();openRow(+tr.getAttribute("data-i"))}});
 
+(function(){
+  var sel=document.getElementById("fm"), seen={};
+  DATA.forEach(function(d){ if(d.mgr) seen[d.mgr]=(seen[d.mgr]||0)+1 });
+  Object.keys(seen).sort().forEach(function(m){
+    var o=document.createElement("option"); o.value=m; o.textContent=m+" ("+seen[m]+")"; sel.appendChild(o);
+  });
+})();
 apply();
-document.querySelector('thead th[data-sort="client"]').setAttribute("aria-sort","ascending");
+document.querySelector('thead th[data-sort="held"]').setAttribute("aria-sort","descending");
 </script>

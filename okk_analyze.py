@@ -33,6 +33,8 @@ from googleapiclient.discovery import build
 # (локально можно положить рядом файл checklist.local.json, он в .gitignore).
 MARKETING_SHEET_ID = os.environ.get("SHEET_ID", "").strip()
 DPD_TAB = os.environ.get("DPD_TAB", "дпд").strip()        # ссылки на расшифровки
+ZOOM_TAB = os.environ.get("ZOOM_TAB", "ZOOM").strip()     # менеджер, дата встречи, запись
+ZOOM_HEADER_ROW = int(os.environ.get("ZOOM_HEADER_ROW") or "1931")
 OKK_TAB = os.environ.get("OKK_TAB", "ОКК").strip()        # сюда пишем разбор
 
 OR_URL = "https://openrouter.ai/api/v1"
@@ -66,7 +68,9 @@ OUT_DIR = "out"
 # Формат конфига:
 # {
 #   "context": "чем занимается компания и что продаём — идёт в промпт",
-#   "must_say":     [{"id","name","patterns":[regex],"min":1,"spread":true}],
+#   "must_say":     [{"id","name","patterns":[regex],"min":1,"all":true}],
+#     "all": true — засчитываем, только если сработал каждый шаблон (например,
+#     «назван месяц» И «названо число»); по умолчанию считается сумма совпадений
 #   "must_not_say": [{"id","name","patterns":[regex]}]
 # }
 
@@ -181,6 +185,30 @@ def read_doc(docs, url):
     )
 
 
+def read_zoom_meta(values):
+    """ID сделки → менеджер, дата встречи, запись. Всё это есть в листе ZOOM."""
+    data = values.get(spreadsheetId=MARKETING_SHEET_ID,
+                      range="'%s'!%d:100000" % (ZOOM_TAB, ZOOM_HEADER_ROW)).execute().get("values", [])
+    if not data:
+        return {}
+    hdr = data[0]
+    meta = {}
+    for raw in data[1:]:
+        row = dict(zip(hdr, raw + [""] * (len(hdr) - len(raw))))
+        rid = str(row.get("ID") or "").strip()
+        if not rid:
+            continue
+        meta[rid] = {
+            "manager": row.get("Ответственный", "").strip(),
+            "held_at": row.get("Дата Диагностика проведена", "").strip(),
+            "source": row.get("Источник", "").strip(),
+            "turnover": row.get("Оборот млн. руб.", "").strip(),
+            "zoom": row.get("Ссылка zoom запись", "").strip(),
+            "passcode": row.get("Код доступа", "").strip(),
+        }
+    return meta
+
+
 # ---------- метрики кодом ----------
 
 def count_patterns(text, patterns):
@@ -213,10 +241,15 @@ def hard_metrics(text):
         res["questions_ok"] = res["questions"] >= qmin
     for rule in MUST_SAY:
         hits = count_patterns(text, rule["patterns"])
+        if rule.get("all"):
+            each = [len(count_patterns(text, [p])) for p in rule["patterns"]]
+            rule_ok = all(c > 0 for c in each)
+        else:
+            rule_ok = None
         thirds = sorted({int(3 * h / n) for h in hits})
         item = {"id": rule["id"], "name": rule["name"], "count": len(hits),
                 "thirds": thirds, "spread_ok": len(thirds) >= 3,
-                "ok": len(hits) >= rule.get("min", 1)}
+                "ok": rule_ok if rule_ok is not None else len(hits) >= rule.get("min", 1)}
         if rule.get("spread_required"):
             item["ok"] = item["ok"] and item["spread_ok"]
         res["must_say"].append(item)
@@ -308,7 +341,8 @@ OKK_HEADERS = ["дата разбора", "ID сделки", "клиент", "с
                "вероятность", "следующий шаг", "дата в шаге", "ЛПР",
                "контакт", "потребности", "презентация", "возражения", "фиксация",
                "комитет (раз)", "комитет по трети", "даты и ограниченность", "запрет: каждый месяц",
-               "вопросов", "слов", "резюме", "модель", "json"]
+               "вопросов", "слов", "резюме", "модель", "json",
+               "менеджер", "дата встречи", "источник", "оборот", "запись zoom", "код доступа"]
 
 
 def ensure_tab(sheets):
@@ -320,7 +354,7 @@ def ensure_tab(sheets):
         log("создан лист «%s»" % OKK_TAB)
     vals = sheets.values().get(spreadsheetId=MARKETING_SHEET_ID,
                                range="'%s'!1:1" % OKK_TAB).execute().get("values", [])
-    if not vals:
+    if not vals or vals[0] != OKK_HEADERS:
         sheets.values().update(spreadsheetId=MARKETING_SHEET_ID,
                                range="'%s'!A1" % OKK_TAB, valueInputOption="RAW",
                                body={"values": [OKK_HEADERS]}).execute()
@@ -333,7 +367,8 @@ def stage_score(review, key):
     return None
 
 
-def to_row(row, review, metrics, model, stamp):
+def to_row(row, review, metrics, model, stamp, meta=None):
+    meta = meta or {}
     ms = {m["id"]: m for m in metrics["must_say"]}
     mn = {m["id"]: m for m in metrics["must_not_say"]}
     return [
@@ -352,6 +387,8 @@ def to_row(row, review, metrics, model, stamp):
         metrics["questions"], metrics["words"],
         review.get("summary", ""), model,
         json.dumps(review, ensure_ascii=False)[:48000],   # лимит ячейки Google — 50 тыс.
+        meta.get("manager", ""), meta.get("held_at", ""), meta.get("source", ""),
+        meta.get("turnover", ""), meta.get("zoom", ""), meta.get("passcode", ""),
     ]
 
 
@@ -395,6 +432,8 @@ def main():
         return {"ok": 0, "fail": 0}
 
     models = pick_models(headers)
+    zoom_meta = read_zoom_meta(values)
+    log("карточек встреч в листе «%s»: %d" % (ZOOM_TAB, len(zoom_meta)))
     stamp = time.strftime("%d.%m.%Y %H:%M")
 
     if not os.path.isdir(OUT_DIR):
@@ -417,7 +456,8 @@ def main():
 
             values.append(spreadsheetId=MARKETING_SHEET_ID, range="'%s'!A1" % OKK_TAB,
                           valueInputOption="RAW", insertDataOption="INSERT_ROWS",
-                          body={"values": [to_row(row, review, metrics, model, stamp)]}).execute()
+                          body={"values": [to_row(row, review, metrics, model, stamp,
+                                                  zoom_meta.get(rid))]}).execute()
             results.append({"row": row, "metrics": metrics, "review": review})
             ok += 1
             # содержание разбора в лог не пишем: логи публичного репозитория видны всем

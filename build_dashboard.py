@@ -25,7 +25,9 @@ OKK_TAB = os.environ.get("OKK_TAB", "ОКК").strip()
 SA_FILE = os.environ.get("GOOGLE_SA_FILE", "").strip()
 SA_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
 TPL = os.environ.get("TPL", "dashboard.tpl.html")
+TPL_STATS = os.environ.get("TPL_STATS", "stats.tpl.html")
 OUT = os.environ.get("OUT", os.path.join("..", "okk-docs", "dashboard.html"))
+OUT_STATS = os.environ.get("OUT_STATS", "")   # пусто — кладём рядом с OUT как stats.html
 
 STAGE_COLS = ["контакт", "потребности", "презентация", "возражения", "фиксация"]
 
@@ -107,18 +109,31 @@ def main():
             "questions": num(r.get("вопросов")) or 0,
             "words": num(r.get("слов")) or 0,
             "summary": clean(r.get("резюме")),
+            "mgr": clean(r.get("менеджер")),
+            "held": clean(r.get("дата встречи")),
+            "source": clean(r.get("источник")),
+            "turnover": clean(r.get("оборот")),
+            "zoom": clean(r.get("запись zoom")),
+            "passcode": clean(r.get("код доступа")),
             "review": review,
         })
 
     payload = {"generated": generated, "model": model, "items": items}
     tpl = io.open(TPL, encoding="utf-8").read()
-    page = tpl.replace("/*__DATA__*/", json.dumps(payload, ensure_ascii=False))
+    data = json.dumps(payload, ensure_ascii=False)
 
     out_dir = os.path.dirname(OUT)
     if out_dir and not os.path.isdir(out_dir):
         os.makedirs(out_dir)
-    io.open(OUT, "w", encoding="utf-8").write(page)
-    print("готово: %s, встреч %d, модель %s" % (OUT, len(items), model))
+    io.open(OUT, "w", encoding="utf-8").write(tpl.replace("/*__DATA__*/", data))
+
+    stats_out = OUT_STATS or os.path.join(out_dir, "stats.html")
+    stats_tpl = io.open(TPL_STATS, encoding="utf-8").read()
+    io.open(stats_out, "w", encoding="utf-8").write(stats_tpl.replace("/*__DATA__*/", data))
+
+    managers = len({i["mgr"] for i in items if i["mgr"]})
+    print("готово: %s и %s, встреч %d, менеджеров %d, модель %s"
+          % (OUT, stats_out, len(items), managers, model))
 
 
 if __name__ == "__main__":
