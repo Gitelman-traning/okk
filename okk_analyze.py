@@ -36,12 +36,16 @@ DPD_TAB = os.environ.get("DPD_TAB", "дпд").strip()        # ссылки на
 OKK_TAB = os.environ.get("OKK_TAB", "ОКК").strip()        # сюда пишем разбор
 
 OR_URL = "https://openrouter.ai/api/v1"
-# приоритет бесплатных моделей: чем раньше в списке, тем охотнее берём
-MODEL_PREFS = ("deepseek", "qwen", "meta-llama", "mistralai", "google", "nvidia")
+# Приоритет вендоров: чем раньше в списке, тем охотнее берём.
+# Порядок выставлен по бесплатному пулу — у gemma и nemotron лимиты выбираются
+# первыми, поэтому крупные модели с большим контекстом идут впереди.
+MODEL_PREFS = ("minimax", "z-ai", "thinkingmachines", "deepseek", "qwen",
+               "inclusionai", "dots-studio", "cohere", "google", "nvidia")
 MIN_CONTEXT = 60000      # расшифровка на 1,5 часа — это 20–30 тыс. токенов
 
 MAX_CHARS = 45000        # обрезка расшифровки перед отправкой (хвост важнее — там закрытие)
 LIMIT = int(os.environ.get("LIMIT") or "5")
+PAUSE = int(os.environ.get("PAUSE") or "8")   # пауза между встречами, сек
 MODEL_ENV = os.environ.get("OKK_MODEL", "").strip()
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
@@ -243,7 +247,7 @@ def pick_models(headers):
         return (pref, -int(m.get("context_length") or 0))
 
     free.sort(key=rank)
-    ids = [m["id"] for m in free[:6]]
+    ids = [m["id"] for m in free[:10]]
     log("бесплатных моделей подходит: %d, кандидаты: %s" % (len(free), ", ".join(ids)))
     return ids
 
@@ -416,6 +420,7 @@ def main():
         except Exception as e:
             fail += 1
             log("[%s] ОШИБКА: %s: %s" % (rid, type(e).__name__, str(e)[:300]))
+        time.sleep(PAUSE)
 
     with io.open(os.path.join(OUT_DIR, "okk.json"), "w", encoding="utf-8") as f:
         json.dump({"generated": stamp, "models": models, "items": results},
