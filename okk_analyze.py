@@ -78,10 +78,11 @@ def load_checklist():
         raise RuntimeError(
             "нет чек-листа: задай секрет CHECKLIST_JSON или положи checklist.local.json")
     cfg = json.loads(raw)
-    return cfg.get("context", ""), cfg.get("must_say", []), cfg.get("must_not_say", [])
+    return (cfg.get("context", ""), cfg.get("must_say", []),
+            cfg.get("must_not_say", []), cfg.get("norms", {}))
 
 
-CONTEXT, MUST_SAY, MUST_NOT_SAY = load_checklist()
+CONTEXT, MUST_SAY, MUST_NOT_SAY, NORMS = load_checklist()
 
 STAGES = [
     ("contact", "Установление контакта"),
@@ -206,14 +207,17 @@ def hard_metrics(text):
         # повторной транскрибации с диаризацией
         "speech_share": None,
     }
+    qmin = NORMS.get("questions_min")
+    if qmin:
+        res["questions_norm"] = qmin
+        res["questions_ok"] = res["questions"] >= qmin
     for rule in MUST_SAY:
         hits = count_patterns(text, rule["patterns"])
+        thirds = sorted({int(3 * h / n) for h in hits})
         item = {"id": rule["id"], "name": rule["name"], "count": len(hits),
+                "thirds": thirds, "spread_ok": len(thirds) >= 3,
                 "ok": len(hits) >= rule.get("min", 1)}
-        if rule.get("spread"):
-            thirds = {int(3 * h / n) for h in hits}
-            item["spread_ok"] = len(thirds) >= 3
-            item["thirds"] = sorted(thirds)
+        if rule.get("spread_required"):
             item["ok"] = item["ok"] and item["spread_ok"]
         res["must_say"].append(item)
     for rule in MUST_NOT_SAY:
@@ -303,8 +307,8 @@ OKK_HEADERS = ["дата разбора", "ID сделки", "клиент", "с
                "цель встречи", "цель достигнута", "почему не достигнута",
                "вероятность", "следующий шаг", "дата в шаге", "ЛПР",
                "контакт", "потребности", "презентация", "возражения", "фиксация",
-               "комитет (раз)", "комитет по трети", "два потока", "запрет: каждый месяц",
-               "вопросов", "слов", "резюме", "модель"]
+               "комитет (раз)", "комитет по трети", "даты и ограниченность", "запрет: каждый месяц",
+               "вопросов", "слов", "резюме", "модель", "json"]
 
 
 def ensure_tab(sheets):
@@ -343,10 +347,11 @@ def to_row(row, review, metrics, model, stamp):
         stage_score(review, "close"),
         ms.get("komitet", {}).get("count", 0),
         "да" if ms.get("komitet", {}).get("spread_ok") else "нет",
-        "да" if ms.get("two_streams", {}).get("ok") else "нет",
+        "да" if (ms.get("stream_dates", {}).get("ok") and ms.get("scarcity", {}).get("ok")) else "нет",
         "нарушено" if not mn.get("monthly", {}).get("ok", True) else "чисто",
         metrics["questions"], metrics["words"],
         review.get("summary", ""), model,
+        json.dumps(review, ensure_ascii=False)[:48000],   # лимит ячейки Google — 50 тыс.
     ]
 
 
