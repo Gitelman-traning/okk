@@ -96,10 +96,17 @@ thead th{position:sticky;top:0;z-index:3;background:var(--surface-3);
 thead th.group{text-align:center;color:var(--accent)}
 thead th[aria-sort="descending"]::after{content:" ↓"}
 thead th[aria-sort="ascending"]::after{content:" ↑"}
-th.c1{left:0;z-index:4} th.c2{left:104px;z-index:4}
+/* Липкие колонки: ширины жёсткие, иначе отступ второй колонки разъезжается
+   с фактической шириной первой и соседний столбец уходит под неё. */
+th.c1,td.c1{width:96px;min-width:96px;max-width:96px}
+th.c2,td.c2{width:210px;min-width:210px;max-width:210px}
+th.c1{left:0;z-index:4} th.c2{left:96px;z-index:4}
 td.c1,td.c2{position:sticky;background:var(--surface);z-index:2}
 td.c1{left:0;font-variant-numeric:tabular-nums}
-td.c2{left:104px;border-right:1px solid var(--line-strong);font-weight:700}
+td.c2{left:96px;border-right:1px solid var(--line-strong);font-weight:700;
+  overflow:hidden;text-overflow:ellipsis}
+tbody tr:hover td.c1,tbody tr:hover td.c2{background:var(--surface-2)}
+tbody tr.sel td.c1,tbody tr.sel td.c2{background:var(--accent-soft)}
 tbody tr{cursor:pointer}
 tbody tr:hover td{background:var(--surface-2)}
 tbody tr.sel td{background:var(--accent-soft)}
@@ -120,40 +127,50 @@ td.sc.s-bad{background:var(--bad-bg);color:var(--bad)}
 td.sc.s-none{color:var(--faint)}
 .flag{font-size:10px;font-weight:800;padding:2px 5px;border:1px solid var(--bad);color:var(--bad);margin-right:4px}
 
-.drawer{position:fixed;top:0;right:0;height:100%;width:min(580px,100%);
-  background:var(--surface);border-left:1px solid var(--line-strong);box-shadow:var(--shadow);
-  transform:translateX(100%);transition:transform .18s ease;display:flex;flex-direction:column;z-index:20}
-.drawer.open{transform:none}
-@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
-.drawer-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
-.drawer-head h2{margin:0;font-size:15px;font-weight:800}
-.drawer-head .meta{font-size:11.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
-.close{margin-left:auto;background:none;border:1px solid var(--line-strong);color:var(--muted);
-  font-family:inherit;font-size:16px;line-height:1;padding:5px 9px;cursor:pointer}
-.drawer-body{overflow:auto;padding:18px;display:flex;flex-direction:column;gap:20px}
-.drawer h3{margin:0 0 9px;font-size:10px;font-weight:800;text-transform:uppercase;
+.modal{position:fixed;inset:0;z-index:20;display:none;background:rgba(10,11,11,.55);
+  padding:24px;overflow:auto}
+.modal.open{display:block}
+.sheet{background:var(--surface);border:1px solid var(--line-strong);box-shadow:var(--shadow);
+  max-width:1180px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+@media (max-width:720px){.modal{padding:0}.sheet{border:0}}
+.sheet-head{position:sticky;top:0;z-index:2;background:var(--surface);
+  padding:16px 22px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:flex-start}
+.sheet-head h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em}
+.sheet-head .meta{font-size:12px;color:var(--muted);margin-top:4px}
+.sheet-head .meta a{color:var(--accent)}
+.headbtns{margin-left:auto;display:flex;gap:6px;flex:none}
+.headbtns button{background:none;border:1px solid var(--line-strong);color:var(--muted);
+  font-family:inherit;font-size:13px;line-height:1;padding:7px 10px;cursor:pointer}
+.headbtns button:hover:not(:disabled){color:var(--text);border-color:var(--accent)}
+.headbtns button:disabled{opacity:.35;cursor:default}
+.sheet-body{padding:22px;display:grid;grid-template-columns:1.35fr 1fr;gap:26px;align-items:start}
+@media (max-width:900px){.sheet-body{grid-template-columns:1fr;gap:20px}}
+.col{display:flex;flex-direction:column;gap:22px;min-width:0}
+.modal h3{margin:0 0 10px;font-size:10px;font-weight:800;text-transform:uppercase;
   letter-spacing:.09em;color:var(--muted)}
-.drawer p{margin:0;font-size:13.5px}
-.callout{background:var(--bad-bg);border-left:3px solid var(--bad);padding:11px 13px;font-size:13px}
-.callout b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--bad);margin-bottom:3px}
-.stage{border-top:1px solid var(--line);padding:11px 0}
+.modal p{margin:0;font-size:14px;line-height:1.55}
+.callout{background:var(--bad-bg);border-left:3px solid var(--bad);padding:12px 15px;font-size:13.5px}
+.callout b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--bad);margin-bottom:4px}
+.stage{border-top:1px solid var(--line);padding:14px 0}
 .stage:first-of-type{border-top:0;padding-top:0}
-.stage .top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.stage .top .nm{font-weight:800;font-size:13px;flex:1}
-.stage .top .sc{font-variant-numeric:tabular-nums;font-weight:800;padding:1px 7px;font-size:12px}
-.stage dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 9px;font-size:12.5px}
-.stage dt{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding-top:2px;white-space:nowrap}
+.stage .top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.stage .top .nm{font-weight:800;font-size:14px;flex:1}
+.stage .top .sc{font-variant-numeric:tabular-nums;font-weight:800;padding:2px 8px;font-size:12.5px}
+.stage dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:13.5px}
+.stage dt{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+  padding-top:3px;white-space:nowrap}
 .stage dt.p{color:var(--ok)} .stage dt.m{color:var(--bad)} .stage dt.f{color:var(--accent)}
 .stage dd{margin:0}
-.stage .q{font-size:12px;color:var(--muted);border-left:2px solid var(--line-strong);
-  padding-left:9px;margin-top:6px}
-.kv{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;
-  border-bottom:1px solid var(--line);padding:4px 0}
+.stage .q{font-size:13px;color:var(--muted);border-left:2px solid var(--line-strong);
+  padding-left:12px;margin-top:9px;line-height:1.5}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;
+  border-bottom:1px solid var(--line);padding:6px 0}
 .kv .k{color:var(--muted)} .kv .v{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
 .kv .v.bad{color:var(--bad)} .kv .v.ok{color:var(--ok)}
-ul.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px}
-ul.list li{padding-left:13px;position:relative}
-ul.list li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;background:var(--accent)}
+ul.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;font-size:13.5px}
+ul.list li{padding-left:14px;position:relative;line-height:1.5}
+ul.list li::before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;background:var(--accent)}
 ul.list.pain li::before{background:var(--warn)}
 ul.list.obj li::before{background:var(--bad)}
 footer{padding:10px 18px;border-top:1px solid var(--line);background:var(--surface-2);
@@ -227,13 +244,22 @@ a{color:var(--accent)}
   <footer id="foot">—</footer>
 </div>
 
-<aside class="drawer" id="drawer" aria-hidden="true">
-  <div class="drawer-head">
-    <div><h2 id="d-title">—</h2><div class="meta" id="d-meta">—</div></div>
-    <button class="close" id="d-close" aria-label="Закрыть разбор">✕</button>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="d-title">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>
+        <h2 id="d-title">—</h2>
+        <div class="meta" id="d-meta">—</div>
+      </div>
+      <div class="headbtns">
+        <button type="button" id="d-prev" title="Предыдущая встреча (←)">←</button>
+        <button type="button" id="d-next" title="Следующая встреча (→)">→</button>
+        <button type="button" id="d-close" title="Закрыть (Esc)" aria-label="Закрыть разбор">✕</button>
+      </div>
+    </div>
+    <div class="sheet-body" id="d-body"></div>
   </div>
-  <div class="drawer-body" id="d-body"></div>
-</aside>
+</div>
 
 <script>
 (function(){
@@ -365,36 +391,31 @@ document.querySelectorAll("thead th[data-sort]").forEach(function(th){
 });
 ["fm","fs","fp","fd"].forEach(function(id){document.getElementById(id).addEventListener("change",apply)});
 
-var drawer=document.getElementById("drawer");
+var modal=document.getElementById("modal");
+var current=-1;
+
 function openRow(i){
   var d=DATA[i], r=d.review||{};
+  current=i;
   document.querySelectorAll("tbody tr").forEach(function(t){t.classList.remove("sel")});
   var tr=tbody.querySelector('tr[data-i="'+i+'"]'); if(tr) tr.classList.add("sel");
+
   document.getElementById("d-title").textContent=d.client||"Встреча";
   document.getElementById("d-meta").innerHTML =
     esc(d.held||"") + " · " + esc(d.mgr||"менеджер не указан")
-    + (d.amo?' · <a href="'+esc(d.amo)+'" target="_blank" rel="noopener">сделка</a>':"")
+    + (d.amo?' · <a href="'+esc(d.amo)+'" target="_blank" rel="noopener">сделка в amoCRM</a>':"")
     + (d.zoom?' · <a href="'+esc(d.zoom)+'" target="_blank" rel="noopener">запись встречи</a>':"")
     + (d.passcode?' (код '+esc(d.passcode)+')':"")
-    + (d.doc?' · <a href="'+esc(d.doc)+'" target="_blank" rel="noopener">расшифровка</a>':"");
+    + (d.doc?' · <a href="'+esc(d.doc)+'" target="_blank" rel="noopener">расшифровка</a>':"")
+    + (d.source?' · источник: '+esc(d.source):"")
+    + (d.turnover?' · оборот '+esc(d.turnover)+' млн':"");
 
-  var html='<div><h3>Резюме встречи</h3><p>'+esc(d.summary)+'</p></div>';
-  if(d.why) html+='<div class="callout"><b>Почему цель не достигнута</b>'+esc(d.why)+'</div>';
-  html+='<div><h3>Следующий шаг</h3><p>'+esc(d.next||"не зафиксирован")+'</p>'
-     +'<div class="kv"><span class="k">Дата назначена</span><span class="v '+(d.next_date?"ok":"bad")+'">'
-     +(d.next_date?"да":"нет")+'</span></div></div>';
-
-  html+='<div><h3>Обязательные элементы</h3>'
-     +'<div class="kv"><span class="k">«Комитет» упомянут</span><span class="v '+(d.komitet>=2?"ok":"bad")+'">'+d.komitet+' раз</span></div>'
-     +'<div class="kv"><span class="k">Комитет по всей встрече</span><span class="v '+(d.komitet_spread?"ok":"bad")+'">'+(d.komitet_spread?"да":"нет")+'</span></div>'
-     +'<div class="kv"><span class="k">Даты потока и дефицит</span><span class="v '+(d.scarcity?"ok":"bad")+'">'+(d.scarcity?"да":"нет")+'</span></div>'
-     +'<div class="kv"><span class="k">Запрещённая фраза</span><span class="v '+(d.banned?"bad":"ok")+'">'+(d.banned?"прозвучала":"чисто")+'</span></div>'
-     +'<div class="kv"><span class="k">Вопросов задано</span><span class="v">'+d.questions+'</span></div>'
-     +'<div class="kv"><span class="k">Слов в расшифровке</span><span class="v">'+d.words+'</span></div></div>';
-
+  // левая колонка: о чём была встреча и как менеджер её провёл
+  var left='<div><h3>Резюме встречи</h3><p>'+esc(d.summary)+'</p></div>';
+  if(d.why) left+='<div class="callout"><b>Почему цель не достигнута</b>'+esc(d.why)+'</div>';
   var stages=(r.stages||[]);
   if(stages.length){
-    html+='<div><h3>Этапы продажи</h3>'+stages.map(function(s){
+    left+='<div><h3>Этапы продажи</h3>'+stages.map(function(s){
       var v=(typeof s.score==="number")?s.score:null;
       return '<div class="stage"><div class="top"><span class="nm">'+esc(STAGE_NAMES[s.key]||s.key)
         +'</span><span class="sc '+cls(v)+'">'+(v==null?"—":v)+'</span></div><dl>'
@@ -404,28 +425,68 @@ function openRow(i){
         +'</dl>'+(s.quote?'<div class="q">«'+esc(s.quote)+'»</div>':"")+'</div>';
     }).join("")+'</div>';
   }
+
+  // правая колонка: результат, счётчики и что известно о клиенте
+  var right='<div><h3>Результат</h3>'
+    +'<div class="kv"><span class="k">Цель встречи</span><span class="v">'+esc(d.achieved||"—")+'</span></div>'
+    +'<div class="kv"><span class="k">Вероятность сделки</span><span class="v">'+(d.prob==null?"—":d.prob+"%")+'</span></div>'
+    +'<div class="kv"><span class="k">ЛПР на встрече</span><span class="v">'+esc(d.dm||"—")+'</span></div>'
+    +'<div class="kv"><span class="k">Дата следующего шага</span><span class="v '+(d.next_date?"ok":"bad")+'">'
+    +(d.next_date?"назначена":"нет")+'</span></div></div>';
+  right+='<div><h3>Следующий шаг</h3><p>'+esc(d.next||"не зафиксирован")+'</p></div>';
+  right+='<div><h3>Обязательные элементы</h3>'
+    +'<div class="kv"><span class="k">«Комитет» упомянут</span><span class="v '+(d.komitet>=2?"ok":"bad")+'">'+d.komitet+' раз</span></div>'
+    +'<div class="kv"><span class="k">Комитет по всей встрече</span><span class="v '+(d.komitet_spread?"ok":"bad")+'">'+(d.komitet_spread?"да":"нет")+'</span></div>'
+    +'<div class="kv"><span class="k">Даты потока и дефицит</span><span class="v '+(d.scarcity?"ok":"bad")+'">'+(d.scarcity?"да":"нет")+'</span></div>'
+    +'<div class="kv"><span class="k">Запрещённая фраза</span><span class="v '+(d.banned?"bad":"ok")+'">'+(d.banned?"прозвучала":"чисто")+'</span></div>'
+    +'<div class="kv"><span class="k">Вопросов задано</span><span class="v">'+d.questions+'</span></div>'
+    +'<div class="kv"><span class="k">Слов в расшифровке</span><span class="v">'+d.words+'</span></div></div>';
   function list(title,arr,cl){
     if(!arr||!arr.length) return "";
     return '<div><h3>'+title+'</h3><ul class="list '+cl+'">'
       +arr.map(function(x){return "<li>"+esc(x)+"</li>"}).join("")+'</ul></div>';
   }
-  html+=list("Факты о клиенте",r.facts,"")+list("Потребности и боли",r.pains,"pain")
-     +list("Возражения",r.objections,"obj");
-  if(r.notes) html+='<div><h3>Замечания модели</h3><p>'+esc(r.notes)+'</p></div>';
+  right+=list("Факты о клиенте",r.facts,"")+list("Потребности и боли",r.pains,"pain")
+      +list("Возражения",r.objections,"obj");
+  if(r.notes) right+='<div><h3>Замечания модели</h3><p>'+esc(r.notes)+'</p></div>';
 
-  document.getElementById("d-body").innerHTML=html;
-  drawer.classList.add("open"); drawer.setAttribute("aria-hidden","false");
+  document.getElementById("d-body").innerHTML='<div class="col">'+left+'</div><div class="col">'+right+'</div>';
+  document.getElementById("modal").scrollTop=0;
+
+  // листаем в том порядке, в каком встречи идут в списке
+  var pos=view.findIndex(function(x){return x.i===i});
+  document.getElementById("d-prev").disabled = pos<=0;
+  document.getElementById("d-next").disabled = pos<0 || pos>=view.length-1;
+
+  modal.classList.add("open");
+  document.body.style.overflow="hidden";
 }
-function closeDrawer(){drawer.classList.remove("open");drawer.setAttribute("aria-hidden","true")}
-document.getElementById("d-close").addEventListener("click",closeDrawer);
-document.addEventListener("keydown",function(e){if(e.key==="Escape")closeDrawer()});
+
+function step(delta){
+  var pos=view.findIndex(function(x){return x.i===current});
+  var to=pos+delta;
+  if(pos>=0 && to>=0 && to<view.length) openRow(view[to].i);
+}
+function closeModal(){modal.classList.remove("open");document.body.style.overflow=""}
+
+document.getElementById("d-close").addEventListener("click",closeModal);
+document.getElementById("d-prev").addEventListener("click",function(){step(-1)});
+document.getElementById("d-next").addEventListener("click",function(){step(1)});
+modal.addEventListener("click",function(e){ if(e.target===modal) closeModal(); });
+document.addEventListener("keydown",function(e){
+  if(!modal.classList.contains("open")) return;
+  if(e.key==="Escape") closeModal();
+  if(e.key==="ArrowLeft") step(-1);
+  if(e.key==="ArrowRight") step(1);
+});
 tbody.addEventListener("click",function(e){
-  if(e.target.closest("a")) return;          // клик по ссылке — уходим по ней, панель не трогаем
+  if(e.target.closest("a")) return;          // клик по ссылке — уходим по ней, окно не трогаем
   var tr=e.target.closest("tr"); if(tr) openRow(+tr.getAttribute("data-i"));
 });
 tbody.addEventListener("keydown",function(e){
   if(e.key!=="Enter"&&e.key!==" ")return;
-  var tr=e.target.closest("tr"); if(tr){e.preventDefault();openRow(+tr.getAttribute("data-i"))}});
+  var tr=e.target.closest("tr"); if(tr){e.preventDefault();openRow(+tr.getAttribute("data-i"))}
+});
 
 (function(){
   var sel=document.getElementById("fm"), seen={};
