@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Собирает дашборд из листа «ОКК»: подставляет разборы в шаблон dashboard.tpl.html.
+
+Результат — обычная html-страница с данными клиентов, поэтому кладём её ВНЕ
+публичного репозитория: путь задаётся переменной OUT (по умолчанию ../okk-docs).
+
+Запуск локально:  python build_dashboard.py
+"""
+
+import datetime
+import html
+import io
+import json
+import os
+import re
+
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+
+SHEET_ID = os.environ.get("SHEET_ID", "").strip()
+OKK_TAB = os.environ.get("OKK_TAB", "ОКК").strip()
+SA_FILE = os.environ.get("GOOGLE_SA_FILE", "").strip()
+SA_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+TPL = os.environ.get("TPL", "dashboard.tpl.html")
+OUT = os.environ.get("OUT", os.path.join("..", "okk-docs", "dashboard.html"))
+
+STAGE_COLS = ["контакт", "потребности", "презентация", "возражения", "фиксация"]
+
+
+def clean(s):
+    """В исходной таблице встречаются html-сущности вида &amp; — разворачиваем."""
+    return html.unescape(str(s or "")).strip()
+
+
+def as_date(s):
+    """Google мог сохранить дату числом (серийный формат) — возвращаем читаемую строку."""
+    s = str(s or "").strip()
+    m = re.match(r"^(\d+)[.,](\d+)$", s)
+    if not m:
+        return s
+    base = datetime.datetime(1899, 12, 30)
+    return (base + datetime.timedelta(days=float(s.replace(",", ".")))).strftime("%d.%m.%Y %H:%M")
+
+
+def num(x):
+    try:
+        return int(float(str(x).replace(",", ".")))
+    except (TypeError, ValueError):
+        return None
+
+
+def creds():
+    scopes = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+    if SA_FILE:
+        return Credentials.from_service_account_file(SA_FILE, scopes=scopes)
+    return Credentials.from_service_account_info(json.loads(SA_JSON), scopes=scopes)
+
+
+def main():
+    values = build("sheets", "v4", credentials=creds(),
+                   cache_discovery=False).spreadsheets().values()
+    data = values.get(spreadsheetId=SHEET_ID,
+                      range="'%s'!1:100000" % OKK_TAB).execute().get("values", [])
+    if not data:
+        raise SystemExit("лист «%s» пуст" % OKK_TAB)
+    hdr = data[0]
+    rows = [dict(zip(hdr, r + [""] * (len(hdr) - len(r)))) for r in data[1:]]
+
+    items, generated, model = [], "", ""
+    for r in rows:
+        generated = as_date(r.get("дата разбора")) or generated
+        model = r.get("модель") or model
+        try:
+            review = json.loads(r.get("json") or "{}")
+        except ValueError:
+            review = {}
+        items.append({
+            "date": r.get("дата разбора", ""),
+            "client": clean(r.get("клиент")) or "без имени",
+            "deal_id": r.get("ID сделки", ""),
+            "amo": r.get("ссылка amo", ""),
+            "doc": r.get("расшифровка", ""),
+            "goal": clean(r.get("цель встречи")),
+            "achieved": r.get("цель достигнута", ""),
+            "why": clean(r.get("почему не достигнута")),
+            "prob": num(r.get("вероятность")),
+            "next": clean(r.get("следующий шаг")),
+            "next_date": r.get("дата в шаге") == "да",
+            "dm": r.get("ЛПР", ""),
+            "s": [num(r.get(c)) for c in STAGE_COLS],
+            "komitet": num(r.get("комитет (раз)")) or 0,
+            "komitet_spread": r.get("комитет по трети") == "да",
+            "scarcity": r.get("даты и ограниченность") == "да",
+            "banned": r.get("запрет: каждый месяц") == "нарушено",
+            "questions": num(r.get("вопросов")) or 0,
+            "words": num(r.get("слов")) or 0,
+            "summary": clean(r.get("резюме")),
+            "review": review,
+        })
+
+    payload = {"generated": generated, "model": model, "items": items}
+    tpl = io.open(TPL, encoding="utf-8").read()
+    page = tpl.replace("/*__DATA__*/", json.dumps(payload, ensure_ascii=False))
+
+    out_dir = os.path.dirname(OUT)
+    if out_dir and not os.path.isdir(out_dir):
+        os.makedirs(out_dir)
+    io.open(OUT, "w", encoding="utf-8").write(page)
+    print("готово: %s, встреч %d, модель %s" % (OUT, len(items), model))
+
+
+if __name__ == "__main__":
+    main()

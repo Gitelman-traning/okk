@@ -1,0 +1,396 @@
+<title>Разбор диагностик</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=TikTok+Sans:opsz,wght@12..36,300..900&display=swap">
+
+<style>
+:root{
+  --ground:#f2f2f2; --surface:#ffffff; --surface-2:#faf9f6; --surface-3:#f0eee9;
+  --line:#dedbd4; --line-strong:#c3bfb5;
+  --text:#151616; --muted:#6b6760; --faint:#9a958c;
+  --accent:#8a6f3d; --accent-soft:#f0e8d7; --gold-a:#d8c9a8; --gold-b:#b59f76;
+  --ok:#2f7a4d; --ok-bg:#dcefe2;
+  --warn:#8f6714; --warn-bg:#f6ebd2;
+  --bad:#b8342a; --bad-bg:#f8ded9;
+  --idle:#8f8b84; --idle-bg:#eceae5;
+  --shadow:0 8px 30px rgba(21,22,22,.14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#151616; --surface:#1c1e1d; --surface-2:#202322; --surface-3:#262928;
+    --line:#2c2f2e; --line-strong:#3e4240;
+    --text:#f4f2ee; --muted:#948f86; --faint:#726e67;
+    --accent:#c9b487; --accent-soft:#2b2721;
+    --ok:#62c584; --ok-bg:#172b1f;
+    --warn:#e0b44a; --warn-bg:#2c2412;
+    --bad:#f95d51; --bad-bg:#301718;
+    --idle:#7c7972; --idle-bg:#232625;
+    --shadow:0 8px 34px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#151616; --surface:#1c1e1d; --surface-2:#202322; --surface-3:#262928;
+  --line:#2c2f2e; --line-strong:#3e4240;
+  --text:#f4f2ee; --muted:#948f86; --faint:#726e67;
+  --accent:#c9b487; --accent-soft:#2b2721;
+  --ok:#62c584; --ok-bg:#172b1f;
+  --warn:#e0b44a; --warn-bg:#2c2412;
+  --bad:#f95d51; --bad-bg:#301718;
+  --idle:#7c7972; --idle-bg:#232625;
+  --shadow:0 8px 34px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--text);
+  font-family:"TikTok Sans",Arial,Helvetica,sans-serif;font-size:14px;line-height:1.45;
+  -webkit-font-smoothing:antialiased}
+.app{display:flex;flex-direction:column;height:100%;min-height:100vh}
+
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:12px 18px;border-bottom:1px solid var(--line);background:var(--surface)}
+.mark{width:32px;height:32px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--gold-a),var(--gold-b));
+  color:#151616;font-weight:800;font-size:14px;letter-spacing:-.04em}
+header h1{margin:0;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:-.01em}
+header .sub{margin:0;font-size:11.5px;color:var(--muted)}
+header .spacer{flex:1}
+.stamp{border:1px solid var(--line-strong);padding:5px 9px;font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}
+.themer{display:inline-flex;border:1px solid var(--line-strong)}
+.themer button{font-family:inherit;font-size:10.5px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.07em;background:none;border:0;border-left:1px solid var(--line-strong);
+  color:var(--muted);padding:6px 9px;cursor:pointer}
+.themer button:first-child{border-left:0}
+.themer button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+
+.summary{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.sum{background:var(--surface);padding:10px 18px;display:flex;flex-direction:column;gap:2px;min-width:130px;flex:1}
+.sum .k{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}
+.sum .v{font-size:19px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
+.sum .v.bad{color:var(--bad)} .sum .v.warn{color:var(--warn)} .sum .v.ok{color:var(--ok)}
+.sum .n{font-size:11px;color:var(--faint)}
+
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:9px 18px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.bar label{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:800}
+.bar select{font-family:inherit;font-size:13px;color:var(--text);background:var(--surface);
+  border:1px solid var(--line-strong);padding:5px 8px}
+.toggle{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.bar .spacer{flex:1}
+.count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.tablebox{flex:1;overflow:auto;background:var(--surface)}
+table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:7px 11px;text-align:left;white-space:nowrap}
+thead th{position:sticky;top:0;z-index:3;background:var(--surface-3);
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);
+  border-bottom:1px solid var(--line-strong);cursor:pointer;user-select:none}
+thead th.group{text-align:center;color:var(--accent)}
+thead th[aria-sort="descending"]::after{content:" ↓"}
+thead th[aria-sort="ascending"]::after{content:" ↑"}
+th.c1{left:0;z-index:4} td.c1{position:sticky;left:0;background:var(--surface);z-index:2;
+  border-right:1px solid var(--line-strong);font-weight:700}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--surface-2)}
+tbody tr.sel td{background:var(--accent-soft)}
+td.num{font-variant-numeric:tabular-nums;text-align:right}
+td.clip{max-width:250px;overflow:hidden;text-overflow:ellipsis}
+
+.pill{display:inline-block;padding:2px 7px;font-size:10.5px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.04em}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.pill.idle{background:var(--idle-bg);color:var(--idle)}
+
+td.sc{text-align:center;font-variant-numeric:tabular-nums;font-weight:700;width:62px}
+td.sc.s-ok{background:var(--ok-bg);color:var(--ok)}
+td.sc.s-warn{background:var(--warn-bg);color:var(--warn)}
+td.sc.s-bad{background:var(--bad-bg);color:var(--bad)}
+td.sc.s-none{color:var(--faint)}
+.flag{font-size:10px;font-weight:800;padding:2px 5px;border:1px solid var(--bad);color:var(--bad);margin-right:4px}
+
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(580px,100%);
+  background:var(--surface);border-left:1px solid var(--line-strong);box-shadow:var(--shadow);
+  transform:translateX(100%);transition:transform .18s ease;display:flex;flex-direction:column;z-index:20}
+.drawer.open{transform:none}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+.drawer-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.drawer-head h2{margin:0;font-size:15px;font-weight:800}
+.drawer-head .meta{font-size:11.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+.close{margin-left:auto;background:none;border:1px solid var(--line-strong);color:var(--muted);
+  font-family:inherit;font-size:16px;line-height:1;padding:5px 9px;cursor:pointer}
+.drawer-body{overflow:auto;padding:18px;display:flex;flex-direction:column;gap:20px}
+.drawer h3{margin:0 0 9px;font-size:10px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.09em;color:var(--muted)}
+.drawer p{margin:0;font-size:13.5px}
+.callout{background:var(--bad-bg);border-left:3px solid var(--bad);padding:11px 13px;font-size:13px}
+.callout b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--bad);margin-bottom:3px}
+.stage{border-top:1px solid var(--line);padding:11px 0}
+.stage:first-of-type{border-top:0;padding-top:0}
+.stage .top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.stage .top .nm{font-weight:800;font-size:13px;flex:1}
+.stage .top .sc{font-variant-numeric:tabular-nums;font-weight:800;padding:1px 7px;font-size:12px}
+.stage dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 9px;font-size:12.5px}
+.stage dt{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding-top:2px;white-space:nowrap}
+.stage dt.p{color:var(--ok)} .stage dt.m{color:var(--bad)} .stage dt.f{color:var(--accent)}
+.stage dd{margin:0}
+.stage .q{font-size:12px;color:var(--muted);border-left:2px solid var(--line-strong);
+  padding-left:9px;margin-top:6px}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;
+  border-bottom:1px solid var(--line);padding:4px 0}
+.kv .k{color:var(--muted)} .kv .v{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.kv .v.bad{color:var(--bad)} .kv .v.ok{color:var(--ok)}
+ul.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px}
+ul.list li{padding-left:13px;position:relative}
+ul.list li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;background:var(--accent)}
+ul.list.pain li::before{background:var(--warn)}
+ul.list.obj li::before{background:var(--bad)}
+footer{padding:10px 18px;border-top:1px solid var(--line);background:var(--surface-2);
+  font-size:11.5px;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+</style>
+
+<div class="app">
+  <header>
+    <div class="mark">12</div>
+    <div>
+      <h1>ОКК · Разбор диагностик</h1>
+      <p class="sub">Расшифровка → счётчики кодом → оценка моделью → разбор по каждой встрече</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="themer" role="group" aria-label="Тема оформления">
+      <button type="button" data-set="auto" aria-pressed="true">Авто</button>
+      <button type="button" data-set="light" aria-pressed="false">Светлая</button>
+      <button type="button" data-set="dark" aria-pressed="false">Тёмная</button>
+    </div>
+    <div class="stamp" id="stamp">—</div>
+  </header>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="bar">
+    <label for="fs">Цель</label>
+    <select id="fs">
+      <option value="">любая</option>
+      <option value="Да">достигнута</option>
+      <option value="Частично">частично</option>
+      <option value="Нет">не достигнута</option>
+    </select>
+    <label class="toggle"><input type="checkbox" id="fp"> только с красной зоной</label>
+    <label class="toggle"><input type="checkbox" id="fd"> без даты в следующем шаге</label>
+    <div class="spacer"></div>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="tablebox">
+    <table id="grid">
+      <thead>
+        <tr>
+          <th class="c1" data-sort="client">Клиент</th>
+          <th data-sort="goal">Цель встречи</th>
+          <th data-sort="achieved">Цель</th>
+          <th data-sort="prob">Вер.</th>
+          <th class="group" data-sort="s0">Контакт</th>
+          <th class="group" data-sort="s1">Потребн.</th>
+          <th class="group" data-sort="s2">Презент.</th>
+          <th class="group" data-sort="s3">Возраж.</th>
+          <th class="group" data-sort="s4">Фиксация</th>
+          <th data-sort="komitet">Комитет</th>
+          <th data-sort="scarcity">Даты и дефицит</th>
+          <th data-sort="questions">Вопросов</th>
+          <th data-sort="next">Следующий шаг</th>
+          <th>Флаги</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <footer id="foot">—</footer>
+</div>
+
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <div><h2 id="d-title">—</h2><div class="meta" id="d-meta">—</div></div>
+    <button class="close" id="d-close" aria-label="Закрыть разбор">✕</button>
+  </div>
+  <div class="drawer-body" id="d-body"></div>
+</aside>
+
+<script>
+(function(){
+  var KEY="okk-theme";
+  function store(v){try{v?localStorage.setItem(KEY,v):localStorage.removeItem(KEY)}catch(e){}}
+  function read(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+  function paint(mode){
+    if(mode==="light"||mode==="dark"){document.documentElement.setAttribute("data-theme",mode)}
+    else{document.documentElement.removeAttribute("data-theme")}
+    document.querySelectorAll(".themer button").forEach(function(b){
+      b.setAttribute("aria-pressed", b.getAttribute("data-set")===(mode||"auto")?"true":"false")});
+  }
+  paint(read()||"auto");
+  document.querySelector(".themer").addEventListener("click",function(e){
+    var b=e.target.closest("button[data-set]"); if(!b)return;
+    var m=b.getAttribute("data-set"); store(m==="auto"?null:m); paint(m);
+  });
+})();
+
+var PAYLOAD = /*__DATA__*/;
+var DATA = PAYLOAD.items;
+var STAGE_NAMES = {contact:"Установление контакта", needs:"Выявление потребностей",
+  present:"Презентация", objections:"Отработка возражений", close:"Фиксация договорённостей"};
+var STAGE_KEYS = ["contact","needs","present","objections","close"];
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function cls(v){return v==null?"s-none":v>=75?"s-ok":v>=55?"s-warn":"s-bad"}
+function goalPill(g){var c=g==="Да"?"ok":g==="Частично"?"warn":g==="Нет"?"bad":"idle";
+  return '<span class="pill '+c+'">'+esc(g||"—")+'</span>'}
+function avg(list){var v=list.filter(function(x){return typeof x==="number"});
+  return v.length?Math.round(v.reduce(function(a,b){return a+b},0)/v.length):null}
+
+document.getElementById("stamp").textContent = "прогон " + PAYLOAD.generated;
+document.getElementById("foot").innerHTML =
+  "Счётчики обязательных элементов, вопросы и объём считает код. Оценки этапов, резюме и следующий шаг — модель "
+  + esc(PAYLOAD.model) + ", каждая оценка привязана к цитате из расшифровки. "
+  + "Доля речи менеджера пока не считается: расшифровки сделаны без разделения говорящих.";
+
+/* сводка */
+(function(){
+  var n=DATA.length;
+  var fix=avg(DATA.map(function(d){return d.s[4]}));
+  var obj=avg(DATA.map(function(d){return d.s[3]}));
+  var noDate=DATA.filter(function(d){return !d.next_date}).length;
+  var spread=DATA.filter(function(d){return d.komitet_spread}).length;
+  var done=DATA.filter(function(d){return d.achieved==="Да"}).length;
+  var cards=[
+    ["Разобрано", n, "встреч в прогоне", ""],
+    ["Цель достигнута", done+" из "+n, "остальные — частично или нет", done?"":"bad"],
+    ["Фиксация", fix, "самый слабый этап", fix<55?"bad":""],
+    ["Возражения", obj, "второй по слабости", obj<55?"bad":"warn"],
+    ["Без даты в шаге", noDate+" из "+n, "следующий созвон не назначен", noDate?"bad":"ok"],
+    ["Комитет по всей встрече", spread+" из "+n, "упоминается в трёх частях", spread?"":"bad"]
+  ];
+  document.getElementById("summary").innerHTML = cards.map(function(c){
+    return '<div class="sum"><span class="k">'+c[0]+'</span><span class="v '+c[3]+'">'+c[1]
+      +'</span><span class="n">'+c[2]+'</span></div>'}).join("");
+})();
+
+var tbody=document.getElementById("rows"), sortKey="client", sortDir=1, view=[];
+
+function rowHtml(d,i){
+  var sc=d.s.map(function(v){return '<td class="sc '+cls(v)+'">'+(v==null?"—":v)+'</td>'}).join("");
+  var flags="";
+  if(!d.next_date) flags+='<span class="flag">нет даты</span>';
+  if(d.s[4]!=null&&d.s[4]<40) flags+='<span class="flag">не закрыл</span>';
+  if(!d.komitet) flags+='<span class="flag">без комитета</span>';
+  return '<tr data-i="'+i+'" tabindex="0">'
+    +'<td class="c1">'+esc(d.client||"—")+'</td>'
+    +'<td class="clip">'+esc(d.goal)+'</td>'
+    +'<td>'+goalPill(d.achieved)+'</td>'
+    +'<td class="num">'+(d.prob==null?"—":d.prob+"%")+'</td>'
+    +sc
+    +'<td class="num">'+d.komitet+'</td>'
+    +'<td>'+(d.scarcity?'<span class="pill ok">да</span>':'<span class="pill bad">нет</span>')+'</td>'
+    +'<td class="num">'+d.questions+'</td>'
+    +'<td class="clip">'+esc(d.next)+'</td>'
+    +'<td>'+flags+'</td></tr>';
+}
+
+function apply(){
+  var fs=document.getElementById("fs").value,
+      fp=document.getElementById("fp").checked,
+      fd=document.getElementById("fd").checked;
+  view=DATA.map(function(d,i){return {d:d,i:i}}).filter(function(x){
+    var d=x.d;
+    if(fs && d.achieved!==fs) return false;
+    if(fp && !d.s.some(function(v){return v!=null&&v<55})) return false;
+    if(fd && d.next_date) return false;
+    return true;
+  });
+  view.sort(function(a,b){
+    var k=sortKey,A,B;
+    if(k.charAt(0)==="s"&&k.length===2){A=a.d.s[+k.charAt(1)];B=b.d.s[+k.charAt(1)]}
+    else if(k==="prob"||k==="questions"||k==="komitet"){A=a.d[k];B=b.d[k]}
+    else if(k==="scarcity"){A=a.d.scarcity?1:0;B=b.d.scarcity?1:0}
+    else {A=String(a.d[k]||"");B=String(b.d[k]||"")}
+    if(A==null)A=-1; if(B==null)B=-1;
+    return A>B?sortDir:A<B?-sortDir:0;
+  });
+  tbody.innerHTML=view.map(function(x){return rowHtml(x.d,x.i)}).join("");
+  document.getElementById("count").textContent="встреч в списке: "+view.length;
+}
+
+document.querySelectorAll("thead th[data-sort]").forEach(function(th){
+  th.addEventListener("click",function(){
+    var k=th.getAttribute("data-sort");
+    if(sortKey===k){sortDir=-sortDir}else{sortKey=k;sortDir=(k==="client"||k==="goal"||k==="next")?1:-1}
+    document.querySelectorAll("thead th").forEach(function(t){t.removeAttribute("aria-sort")});
+    th.setAttribute("aria-sort",sortDir===1?"ascending":"descending");
+    apply();
+  });
+});
+["fs","fp","fd"].forEach(function(id){document.getElementById(id).addEventListener("change",apply)});
+
+var drawer=document.getElementById("drawer");
+function openRow(i){
+  var d=DATA[i], r=d.review||{};
+  document.querySelectorAll("tbody tr").forEach(function(t){t.classList.remove("sel")});
+  var tr=tbody.querySelector('tr[data-i="'+i+'"]'); if(tr) tr.classList.add("sel");
+  document.getElementById("d-title").textContent=d.client||"Встреча";
+  document.getElementById("d-meta").innerHTML =
+    "сделка " + esc(d.deal_id) + (d.amo?' · <a href="'+esc(d.amo)+'" target="_blank" rel="noopener">карточка в amoCRM</a>':"")
+    + (d.doc?' · <a href="'+esc(d.doc)+'" target="_blank" rel="noopener">расшифровка</a>':"");
+
+  var html='<div><h3>Резюме встречи</h3><p>'+esc(d.summary)+'</p></div>';
+  if(d.why) html+='<div class="callout"><b>Почему цель не достигнута</b>'+esc(d.why)+'</div>';
+  html+='<div><h3>Следующий шаг</h3><p>'+esc(d.next||"не зафиксирован")+'</p>'
+     +'<div class="kv"><span class="k">Дата назначена</span><span class="v '+(d.next_date?"ok":"bad")+'">'
+     +(d.next_date?"да":"нет")+'</span></div></div>';
+
+  html+='<div><h3>Обязательные элементы</h3>'
+     +'<div class="kv"><span class="k">«Комитет» упомянут</span><span class="v '+(d.komitet>=2?"ok":"bad")+'">'+d.komitet+' раз</span></div>'
+     +'<div class="kv"><span class="k">Комитет по всей встрече</span><span class="v '+(d.komitet_spread?"ok":"bad")+'">'+(d.komitet_spread?"да":"нет")+'</span></div>'
+     +'<div class="kv"><span class="k">Даты потока и дефицит</span><span class="v '+(d.scarcity?"ok":"bad")+'">'+(d.scarcity?"да":"нет")+'</span></div>'
+     +'<div class="kv"><span class="k">Запрещённая фраза</span><span class="v '+(d.banned?"bad":"ok")+'">'+(d.banned?"прозвучала":"чисто")+'</span></div>'
+     +'<div class="kv"><span class="k">Вопросов задано</span><span class="v">'+d.questions+'</span></div>'
+     +'<div class="kv"><span class="k">Слов в расшифровке</span><span class="v">'+d.words+'</span></div></div>';
+
+  var stages=(r.stages||[]);
+  if(stages.length){
+    html+='<div><h3>Этапы продажи</h3>'+stages.map(function(s){
+      var v=(typeof s.score==="number")?s.score:null;
+      return '<div class="stage"><div class="top"><span class="nm">'+esc(STAGE_NAMES[s.key]||s.key)
+        +'</span><span class="sc '+cls(v)+'">'+(v==null?"—":v)+'</span></div><dl>'
+        +(s.good?'<dt class="p">Хорошо</dt><dd>'+esc(s.good)+'</dd>':"")
+        +(s.bad?'<dt class="m">Плохо</dt><dd>'+esc(s.bad)+'</dd>':"")
+        +(s.fix?'<dt class="f">Улучшить</dt><dd>'+esc(s.fix)+'</dd>':"")
+        +'</dl>'+(s.quote?'<div class="q">«'+esc(s.quote)+'»</div>':"")+'</div>';
+    }).join("")+'</div>';
+  }
+  function list(title,arr,cl){
+    if(!arr||!arr.length) return "";
+    return '<div><h3>'+title+'</h3><ul class="list '+cl+'">'
+      +arr.map(function(x){return "<li>"+esc(x)+"</li>"}).join("")+'</ul></div>';
+  }
+  html+=list("Факты о клиенте",r.facts,"")+list("Потребности и боли",r.pains,"pain")
+     +list("Возражения",r.objections,"obj");
+  if(r.notes) html+='<div><h3>Замечания модели</h3><p>'+esc(r.notes)+'</p></div>';
+
+  document.getElementById("d-body").innerHTML=html;
+  drawer.classList.add("open"); drawer.setAttribute("aria-hidden","false");
+}
+function closeDrawer(){drawer.classList.remove("open");drawer.setAttribute("aria-hidden","true")}
+document.getElementById("d-close").addEventListener("click",closeDrawer);
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeDrawer()});
+tbody.addEventListener("click",function(e){var tr=e.target.closest("tr");if(tr)openRow(+tr.getAttribute("data-i"))});
+tbody.addEventListener("keydown",function(e){
+  if(e.key!=="Enter"&&e.key!==" ")return;
+  var tr=e.target.closest("tr"); if(tr){e.preventDefault();openRow(+tr.getAttribute("data-i"))}});
+
+apply();
+document.querySelector('thead th[data-sort="client"]').setAttribute("aria-sort","ascending");
+</script>

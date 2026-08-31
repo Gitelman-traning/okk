@@ -416,7 +416,7 @@ def main():
             review, model = ask_model(models, headers, sent, metrics)
 
             values.append(spreadsheetId=MARKETING_SHEET_ID, range="'%s'!A1" % OKK_TAB,
-                          valueInputOption="USER_ENTERED", insertDataOption="INSERT_ROWS",
+                          valueInputOption="RAW", insertDataOption="INSERT_ROWS",
                           body={"values": [to_row(row, review, metrics, model, stamp)]}).execute()
             results.append({"row": row, "metrics": metrics, "review": review})
             ok += 1
