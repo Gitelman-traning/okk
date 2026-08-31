@@ -40,7 +40,7 @@ OR_URL = "https://openrouter.ai/api/v1"
 MODEL_PREFS = ("deepseek", "qwen", "meta-llama", "mistralai", "google", "nvidia")
 MIN_CONTEXT = 60000      # расшифровка на 1,5 часа — это 20–30 тыс. токенов
 
-MAX_CHARS = 90000        # обрезка расшифровки перед отправкой (хвост важнее — там закрытие)
+MAX_CHARS = 45000        # обрезка расшифровки перед отправкой (хвост важнее — там закрытие)
 LIMIT = int(os.environ.get("LIMIT") or "5")
 MODEL_ENV = os.environ.get("OKK_MODEL", "").strip()
 
@@ -213,11 +213,13 @@ def hard_metrics(text):
 
 # ---------- OpenRouter ----------
 
-def pick_model(headers):
-    """Берём бесплатную модель с достаточным контекстом; приоритет — по MODEL_PREFS."""
+def pick_models(headers):
+    """Список кандидатов: бесплатные модели с достаточным контекстом, в порядке приоритета.
+    Бесплатные лимиты выбираются быстро и по-разному у разных вендоров, поэтому
+    держим запасные — на 429 переходим к следующей."""
     if MODEL_ENV:
         log("модель задана вручную: %s" % MODEL_ENV)
-        return MODEL_ENV
+        return [MODEL_ENV]
     r = requests.get(OR_URL + "/models", headers=headers, timeout=60)
     r.raise_for_status()
     models = r.json().get("data", [])
@@ -233,12 +235,12 @@ def pick_model(headers):
         return (pref, -int(m.get("context_length") or 0))
 
     free.sort(key=rank)
-    log("бесплатных моделей подходит: %d, беру %s (контекст %s)"
-        % (len(free), free[0]["id"], free[0].get("context_length")))
-    return free[0]["id"]
+    ids = [m["id"] for m in free[:6]]
+    log("бесплатных моделей подходит: %d, кандидаты: %s" % (len(free), ", ".join(ids)))
+    return ids
 
 
-def ask_model(model, headers, transcript, metrics):
+def ask_model(models, headers, transcript, metrics):
     prompt = (
         "Расшифровка встречи (автоматическая, без разметки говорящих):\n\n"
         + transcript
@@ -247,32 +249,37 @@ def ask_model(model, headers, transcript, metrics):
         + "\n\nРазбери встречу по схеме."
     )
     body = {
-        "model": model,
+        "model": None,
         "messages": [{"role": "system", "content": SYSTEM_PROMPT},
                      {"role": "user", "content": prompt}],
         "temperature": 0.2,
         "response_format": {"type": "json_object"},
     }
     last = ""
-    for attempt in range(3):
-        try:
-            r = requests.post(OR_URL + "/chat/completions", headers=headers,
-                              json=body, timeout=600)
-            if r.status_code == 429:
-                last = "429 лимит бесплатной модели"
-                time.sleep(20 * (attempt + 1))
-                continue
-            r.raise_for_status()
-            content = r.json()["choices"][0]["message"]["content"]
-            # некоторые модели всё равно оборачивают в ```json
-            content = re.sub(r"^```(?:json)?|```$", "", content.strip(), flags=re.M).strip()
-            return json.loads(content)
-        except json.JSONDecodeError as e:
-            last = "модель вернула не JSON: %s" % str(e)[:120]
-        except Exception as e:
-            last = "%s: %s" % (type(e).__name__, str(e)[:160])
-        time.sleep(5)
-    raise RuntimeError(last or "не удалось получить разбор")
+    for model in models:
+        body["model"] = model
+        for attempt in range(2):
+            try:
+                r = requests.post(OR_URL + "/chat/completions", headers=headers,
+                                  json=body, timeout=600)
+                if r.status_code == 429:
+                    last = "429 у %s" % model
+                    log("   %s занята (429), пробую следующую" % model)
+                    time.sleep(3)
+                    break          # к следующей модели, ждать бесполезно
+                r.raise_for_status()
+                content = r.json()["choices"][0]["message"]["content"]
+                # некоторые модели всё равно оборачивают ответ в ```json
+                content = re.sub(r"^```(?:json)?|```$", "", content.strip(), flags=re.M).strip()
+                return json.loads(content), model
+            except json.JSONDecodeError as e:
+                last = "%s вернула не JSON: %s" % (model, str(e)[:100])
+                log("   %s" % last)
+            except Exception as e:
+                last = "%s: %s: %s" % (model, type(e).__name__, str(e)[:120])
+                log("   %s" % last)
+            time.sleep(4)
+    raise RuntimeError(last or "ни одна модель не ответила")
 
 
 # ---------- запись ----------
@@ -367,7 +374,7 @@ def main():
     if not pending:
         return {"ok": 0, "fail": 0}
 
-    model = pick_model(headers)
+    models = pick_models(headers)
     stamp = time.strftime("%d.%m.%Y %H:%M")
 
     if not os.path.isdir(OUT_DIR):
@@ -386,7 +393,7 @@ def main():
             metrics = hard_metrics(text)
             sent = text if len(text) <= MAX_CHARS else text[:MAX_CHARS // 3] + "\n…\n" + text[-2 * MAX_CHARS // 3:]
             log("[%s] разбор моделью (%d символов)..." % (rid, len(sent)))
-            review = ask_model(model, headers, sent, metrics)
+            review, model = ask_model(models, headers, sent, metrics)
 
             values.append(spreadsheetId=MARKETING_SHEET_ID, range="'%s'!A1" % OKK_TAB,
                           valueInputOption="USER_ENTERED", insertDataOption="INSERT_ROWS",
@@ -400,11 +407,11 @@ def main():
             log("[%s] ОШИБКА: %s: %s" % (rid, type(e).__name__, str(e)[:300]))
 
     with io.open(os.path.join(OUT_DIR, "okk.json"), "w", encoding="utf-8") as f:
-        json.dump({"generated": stamp, "model": model, "items": results},
+        json.dump({"generated": stamp, "models": models, "items": results},
                   f, ensure_ascii=False, indent=1)
 
     log("ГОТОВО. Разобрано: %d, ошибок: %d" % (ok, fail))
-    return {"ok": ok, "fail": fail, "model": model}
+    return {"ok": ok, "fail": fail, "model": ", ".join(models[:2])}
 
 
 if __name__ == "__main__":
