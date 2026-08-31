@@ -15,6 +15,7 @@ import io
 import json
 import os
 import re
+import time
 
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -61,8 +62,17 @@ def creds():
 def main():
     values = build("sheets", "v4", credentials=creds(),
                    cache_discovery=False).spreadsheets().values()
-    data = values.get(spreadsheetId=SHEET_ID,
-                      range="'%s'!1:100000" % OKK_TAB).execute().get("values", [])
+    data = []
+    for attempt in range(4):        # Google иногда отвечает 503 — просто пробуем ещё раз
+        try:
+            data = values.get(spreadsheetId=SHEET_ID,
+                              range="'%s'!1:100000" % OKK_TAB).execute().get("values", [])
+            break
+        except Exception as e:
+            if attempt == 3:
+                raise
+            print("повтор чтения таблицы (%s)" % type(e).__name__)
+            time.sleep(5)
     if not data:
         raise SystemExit("лист «%s» пуст" % OKK_TAB)
     hdr = data[0]
