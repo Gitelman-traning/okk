@@ -199,6 +199,7 @@ def read_zoom_meta(values):
         if not rid:
             continue
         meta[rid] = {
+            "amo": row.get("ссылка", "").strip(),
             "manager": row.get("Ответственный", "").strip(),
             "held_at": row.get("Дата Диагностика проведена", "").strip(),
             "source": row.get("Источник", "").strip(),
@@ -373,7 +374,7 @@ def to_row(row, review, metrics, model, stamp, meta=None):
     mn = {m["id"]: m for m in metrics["must_not_say"]}
     return [
         stamp, row.get("ID", ""), (row.get("first_name", "") + " " + row.get("last_name", "")).strip(),
-        row.get("amo_link", ""), row.get("doc_url", ""),
+        row.get("amo_link", "").strip() or meta.get("amo", ""), row.get("doc_url", ""),
         review.get("goal", ""), review.get("goal_achieved", ""), review.get("goal_reason", ""),
         review.get("probability", ""), review.get("next_step", ""),
         "да" if review.get("next_step_has_date") else "нет", review.get("decision_maker", ""),
