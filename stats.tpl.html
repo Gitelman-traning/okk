@@ -116,7 +116,7 @@ a{color:var(--accent)}
     <h1>ОКК · Статистика</h1>
     <p class="sub">Отдел целиком и разрез по менеджерам</p>
   </div>
-  <nav class="nav"><a href="./">Встречи</a><a class="on" href="stats.html">Статистика</a></nav>
+  <nav class="nav"><a href="./">Встречи</a><a class="on" href="stats.html">Статистика</a><a href="guide.html">Гайд</a></nav>
   <div class="spacer"></div>
   <div class="themer" role="group" aria-label="Тема оформления">
     <button type="button" data-set="auto" aria-pressed="true">Авто</button>
@@ -228,7 +228,7 @@ document.getElementById("stamp").textContent="прогон "+PAYLOAD.generated;
   var med=q.length?q[Math.floor(q.length/2)]:0;
   var cards=[
     ["Разобрано", n, "встреч", ""],
-    ["Цель достигнута", done+" из "+n, part+" частично", done?"":"bad"],
+    ["Цель встречи достигнута", done+" из "+n, part+" частично, "+(n-done-part)+" нет", done?"":"bad"],
     ["Средняя вероятность", prob==null?"—":prob+"%", "по оценке модели", prob<40?"warn":""],
     ["Фиксация", fixv==null?"—":fixv, "самый слабый этап", fixv<55?"bad":""],
     ["Без даты в шаге", noDate+" из "+n, "созвон не назначен", noDate?"bad":"ok"],

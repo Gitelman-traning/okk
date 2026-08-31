@@ -127,13 +127,12 @@ td.sc.s-bad{background:var(--bad-bg);color:var(--bad)}
 td.sc.s-none{color:var(--faint)}
 .flag{font-size:10px;font-weight:800;padding:2px 5px;border:1px solid var(--bad);color:var(--bad);margin-right:4px}
 
-.modal{position:fixed;inset:0;z-index:20;display:none;background:rgba(10,11,11,.55);
-  padding:24px;overflow:auto}
+.modal{position:fixed;inset:0;z-index:20;display:none;background:rgba(10,11,11,.55);padding:24px}
 .modal.open{display:block}
 .sheet{background:var(--surface);border:1px solid var(--line-strong);box-shadow:var(--shadow);
-  max-width:1180px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+  max-width:1180px;margin:0 auto;height:100%;display:flex;flex-direction:column;overflow:hidden}
 @media (max-width:720px){.modal{padding:0}.sheet{border:0}}
-.sheet-head{position:sticky;top:0;z-index:2;background:var(--surface);
+.sheet-head{flex:none;background:var(--surface);
   padding:16px 22px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:flex-start}
 .sheet-head h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em}
 .sheet-head .meta{font-size:12px;color:var(--muted);margin-top:4px}
@@ -143,7 +142,8 @@ td.sc.s-none{color:var(--faint)}
   font-family:inherit;font-size:13px;line-height:1;padding:7px 10px;cursor:pointer}
 .headbtns button:hover:not(:disabled){color:var(--text);border-color:var(--accent)}
 .headbtns button:disabled{opacity:.35;cursor:default}
-.sheet-body{padding:22px;display:grid;grid-template-columns:1.35fr 1fr;gap:26px;align-items:start}
+.sheet-body{flex:1;overflow:auto;padding:22px;display:grid;grid-template-columns:1.35fr 1fr;
+  gap:26px;align-items:start}
 @media (max-width:900px){.sheet-body{grid-template-columns:1fr;gap:20px}}
 .col{display:flex;flex-direction:column;gap:22px;min-width:0}
 .modal h3{margin:0 0 10px;font-size:10px;font-weight:800;text-transform:uppercase;
@@ -186,7 +186,7 @@ a{color:var(--accent)}
       <h1>ОКК · Разбор диагностик</h1>
       <p class="sub">Расшифровка → счётчики кодом → оценка моделью → разбор по каждой встрече</p>
     </div>
-    <nav class="nav"><a class="on" href="./">Встречи</a><a href="stats.html">Статистика</a></nav>
+    <nav class="nav"><a class="on" href="./">Встречи</a><a href="stats.html">Статистика</a><a href="guide.html">Гайд</a></nav>
     <div class="spacer"></div>
     <div class="themer" role="group" aria-label="Тема оформления">
       <button type="button" data-set="auto" aria-pressed="true">Авто</button>
@@ -223,7 +223,7 @@ a{color:var(--accent)}
           <th data-sort="mgr">Менеджер</th>
           <th>Ссылки</th>
           <th data-sort="goal">Цель встречи</th>
-          <th data-sort="achieved">Цель</th>
+          <th data-sort="achieved">Цель достигнута</th>
           <th data-sort="prob">Вер.</th>
           <th class="group" data-sort="s0">Контакт</th>
           <th class="group" data-sort="s1">Потребн.</th>
@@ -451,7 +451,7 @@ function openRow(i){
   if(r.notes) right+='<div><h3>Замечания модели</h3><p>'+esc(r.notes)+'</p></div>';
 
   document.getElementById("d-body").innerHTML='<div class="col">'+left+'</div><div class="col">'+right+'</div>';
-  document.getElementById("modal").scrollTop=0;
+  document.getElementById("d-body").scrollTop=0;
 
   // листаем в том порядке, в каком встречи идут в списке
   var pos=view.findIndex(function(x){return x.i===i});

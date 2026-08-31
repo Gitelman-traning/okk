@@ -26,6 +26,7 @@ SA_FILE = os.environ.get("GOOGLE_SA_FILE", "").strip()
 SA_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
 TPL = os.environ.get("TPL", "dashboard.tpl.html")
 TPL_STATS = os.environ.get("TPL_STATS", "stats.tpl.html")
+TPL_GUIDE = os.environ.get("TPL_GUIDE", "guide.tpl.html")
 OUT = os.environ.get("OUT", os.path.join("..", "okk-docs", "dashboard.html"))
 OUT_STATS = os.environ.get("OUT_STATS", "")   # пусто — кладём рядом с OUT как stats.html
 
@@ -130,6 +131,10 @@ def main():
     stats_out = OUT_STATS or os.path.join(out_dir, "stats.html")
     stats_tpl = io.open(TPL_STATS, encoding="utf-8").read()
     io.open(stats_out, "w", encoding="utf-8").write(stats_tpl.replace("/*__DATA__*/", data))
+
+    guide_out = os.path.join(out_dir, "guide.html")
+    guide_tpl = io.open(TPL_GUIDE, encoding="utf-8").read()
+    io.open(guide_out, "w", encoding="utf-8").write(guide_tpl.replace("/*__DATA__*/", data))
 
     managers = len({i["mgr"] for i in items if i["mgr"]})
     print("готово: %s и %s, встреч %d, менеджеров %d, модель %s"
