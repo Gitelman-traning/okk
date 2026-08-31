@@ -160,7 +160,15 @@ def read_doc(docs, url):
     m = re.search(r"/document/d/([A-Za-z0-9_-]+)", url or "")
     if not m:
         return ""
-    d = docs.documents().get(documentId=m.group(1)).execute()
+    for attempt in range(3):
+        try:
+            d = docs.documents().get(documentId=m.group(1)).execute()
+            break
+        except Exception as e:
+            if attempt == 2:
+                raise
+            log("   повтор чтения документа (%s)" % type(e).__name__)
+            time.sleep(5)
     return "".join(
         el.get("textRun", {}).get("content", "")
         for c in d.get("body", {}).get("content", [])
@@ -268,7 +276,10 @@ def ask_model(models, headers, transcript, metrics):
                     time.sleep(3)
                     break          # к следующей модели, ждать бесполезно
                 r.raise_for_status()
-                content = r.json()["choices"][0]["message"]["content"]
+                msg = (r.json().get("choices") or [{}])[0].get("message") or {}
+                content = msg.get("content") or msg.get("reasoning") or ""
+                if not content.strip():
+                    raise ValueError("пустой ответ модели")
                 # некоторые модели всё равно оборачивают ответ в ```json
                 content = re.sub(r"^```(?:json)?|```$", "", content.strip(), flags=re.M).strip()
                 return json.loads(content), model

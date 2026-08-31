@@ -1,0 +1,24 @@
+name: OKK models and prices
+
+on:
+  workflow_dispatch:
+    inputs:
+      meetings:
+        description: 'Diagnostics per month for the estimate'
+        required: false
+        default: '300'
+
+jobs:
+  models:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests
+      - run: python models_report.py
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          MEETINGS: ${{ inputs.meetings }}
