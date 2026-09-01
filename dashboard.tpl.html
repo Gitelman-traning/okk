@@ -204,16 +204,66 @@ footer{padding:14px 22px;font-size:12px;color:var(--faint)}
 a{color:var(--gold)}
 :focus-visible{outline:2px solid var(--gold-b);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- левое меню ---------- */
+.layout{display:flex;min-height:100vh}
+.side{width:216px;flex:none;background:var(--card);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;gap:4px;padding:16px 12px 14px;overflow:hidden;
+  transition:width .16s ease;position:sticky;top:0;height:100vh}
+:root[data-menu="mini"] .side{width:66px}
+.side .brand{display:flex;align-items:center;gap:11px;padding:4px 8px 16px;min-width:0}
+.side .brand .mark{flex:none}
+.side .brand .txt{min-width:0}
+.side .brand .txt b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap}
+.side .brand .txt span{display:block;font-size:11.5px;color:var(--faint);white-space:nowrap}
+.side nav{display:flex;flex-direction:column;gap:3px}
+.side nav a{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;
+  color:var(--dim);text-decoration:none;font-size:13.5px;white-space:nowrap}
+.side nav a:hover{background:var(--soft);color:var(--ink)}
+.side nav a.on{background:var(--gold-soft);color:var(--gold);font-weight:600}
+.side nav a svg{flex:none;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6}
+.side .grow{flex:1}
+.side .collapse{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;
+  background:none;border:0;color:var(--faint);font-family:inherit;font-size:12.5px;cursor:pointer;
+  text-align:left;white-space:nowrap}
+.side .collapse:hover{background:var(--soft);color:var(--ink)}
+.side .collapse svg{flex:none;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;
+  transition:transform .16s ease}
+:root[data-menu="mini"] .side .collapse svg{transform:rotate(180deg)}
+:root[data-menu="mini"] .side .txt,
+:root[data-menu="mini"] .side nav a span,
+:root[data-menu="mini"] .side .collapse span{display:none}
+:root[data-menu="mini"] .side nav a,
+:root[data-menu="mini"] .side .collapse{justify-content:center;padding:11px 0}
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+@media (max-width:760px){
+  .side{width:66px}
+  .side .txt,.side nav a span,.side .collapse span{display:none}
+  .side nav a,.side .collapse{justify-content:center;padding:11px 0}
+}
 </style>
 
+<div class="layout">
+<aside class="side">
+  <div class="brand">
+    <div class="mark">12</div>
+    <div class="txt"><b>ОКК</b><span>разбор диагностик</span></div>
+  </div>
+  <nav>
+    <a href="./" class="on" title="Встречи"><svg viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h9" stroke-linecap="round"/></svg><span>Встречи</span></a>
+    <a href="stats.html" title="Статистика"><svg viewBox="0 0 20 20"><path d="M4 16V9M10 16V4M16 16v-5" stroke-linecap="round"/></svg><span>Статистика</span></a>
+    <a href="guide.html" title="Гайд"><svg viewBox="0 0 20 20"><path d="M4 4h5a2 2 0 012 2v10a2 2 0 00-2-2H4V4zM16 4h-5a2 2 0 00-2 2v10a2 2 0 012-2h5V4z" stroke-linejoin="round"/></svg><span>Гайд</span></a>
+  </nav>
+  <div class="grow"></div>
+  <button type="button" class="collapse" id="menu-toggle"><svg viewBox="0 0 20 20"><path d="M12 5l-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Свернуть меню</span></button>
+</aside>
+<div class="pane">
 <div class="app">
   <header>
-    <div class="mark">12</div>
     <div>
       <h1>ОКК · Разбор диагностик</h1>
       <p class="sub">Расшифровка → счётчики кодом → оценка моделью → разбор по каждой встрече</p>
     </div>
-    <nav class="nav"><a class="on" href="./">Встречи</a><a href="stats.html">Статистика</a><a href="guide.html">Гайд</a></nav>
     <div class="spacer"></div>
     <div class="seg skinner" role="group" aria-label="Плотность">
       <button type="button" data-skin="air" aria-pressed="true">Просторно</button>
@@ -274,6 +324,8 @@ a{color:var(--gold)}
 
   <footer id="foot">—</footer>
 </div>
+</div>
+</div>
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="d-title">
   <div class="sheet">
@@ -293,6 +345,24 @@ a{color:var(--gold)}
 </div>
 
 <script>
+/* левое меню: развёрнуто или иконками — выбор запоминается */
+(function(){
+  var KEY="okk-menu";
+  function read(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+  function store(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+  function paint(mode){
+    document.documentElement.setAttribute("data-menu",mode);
+    var b=document.getElementById("menu-toggle");
+    if(b) b.setAttribute("aria-expanded", mode==="mini" ? "false" : "true");
+  }
+  paint(read()||"full");
+  var btn=document.getElementById("menu-toggle");
+  if(btn) btn.addEventListener("click",function(){
+    var next=document.documentElement.getAttribute("data-menu")==="mini" ? "full" : "mini";
+    store(next); paint(next);
+  });
+})();
+
 (function(){
   var KEY="okk-theme";
   function store(v){try{v?localStorage.setItem(KEY,v):localStorage.removeItem(KEY)}catch(e){}}
