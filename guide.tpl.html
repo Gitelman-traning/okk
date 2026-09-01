@@ -41,7 +41,7 @@ body{margin:0;background:var(--page);color:var(--ink);
   font-family:Inter,"TikTok Sans",Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;
   -webkit-font-smoothing:antialiased}
 
-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 22px;background:var(--card);
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 26px;background:var(--card);
   border-bottom:1px solid var(--line)}
 .mark{width:30px;height:30px;flex:none;display:grid;place-items:center;border-radius:9px;
   background:var(--gold-soft);color:var(--gold);font-weight:700;font-size:12px}
@@ -49,55 +49,12 @@ header h1{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
 header .sub{margin:0;font-size:12px;color:var(--dim)}
 header .spacer{flex:1}
 .stamp{font-size:12px;color:var(--faint)}
-.nav{display:flex;gap:16px;font-size:13.5px;color:var(--dim);margin-left:6px}
-.nav a{text-decoration:none;color:inherit}
-.nav a.on{color:var(--gold);font-weight:600}
 .themer{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
 .themer button{font-family:inherit;font-size:12px;font-weight:500;background:none;border:0;
   color:var(--dim);padding:5px 11px;border-radius:7px;cursor:pointer}
-.themer button[aria-pressed="true"]{background:var(--card);color:var(--gold);font-weight:600;
-  box-shadow:0 1px 2px rgba(40,35,28,.06)}
+.themer button[aria-pressed="true"]{background:var(--card);color:var(--gold);font-weight:600}
 a{color:var(--gold)}
 :focus-visible{outline:2px solid var(--gold-b);outline-offset:2px}
-
-main{max-width:780px;margin:0 auto;padding:34px 22px 90px;display:flex;flex-direction:column;gap:42px}
-section{display:flex;flex-direction:column;gap:14px}
-h2{margin:0;font-size:21px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
-h3{margin:0;font-size:13px;font-weight:600;color:var(--dim)}
-p{margin:0}
-.lead{font-size:16.5px;line-height:1.6;color:var(--dim)}
-.eyebrow{font-size:12px;font-weight:600;color:var(--gold)}
-
-.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:640px){.two{grid-template-columns:1fr}}
-.cell{background:var(--card);border-radius:14px;padding:18px 20px}
-.cell h4{margin:0 0 8px;font-size:14.5px;font-weight:600}
-.cell p{font-size:13.5px;color:var(--dim)}
-.cell .tag{display:inline-block;font-size:12px;font-weight:500;padding:3px 10px;border-radius:8px;margin-bottom:10px}
-.tag.code{background:var(--ok-bg);color:var(--ok)}
-.tag.model{background:var(--mid-bg);color:var(--mid)}
-
-table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px;
-  background:var(--card);border-radius:14px;overflow:hidden}
-th,td{padding:12px 15px;text-align:left;vertical-align:top}
-th{font-size:12px;font-weight:500;color:var(--faint);border-bottom:1px solid var(--line);white-space:nowrap}
-td{border-bottom:1px solid var(--line);color:var(--dim)}
-tbody tr:last-child td{border-bottom:0}
-td.n{white-space:nowrap;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-.scale{display:inline-block;padding:3px 10px;border-radius:8px;font-weight:600;font-size:12.5px}
-.scale.ok{background:var(--ok-bg);color:var(--ok)}
-.scale.warn{background:var(--mid-bg);color:var(--mid)}
-.scale.bad{background:var(--bad-bg);color:var(--bad)}
-
-ol,ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:9px;color:var(--dim)}
-li{padding-left:2px}
-li b{color:var(--ink)}
-.note{background:var(--card);border-radius:14px;padding:16px 18px;font-size:13.5px;color:var(--dim)}
-.note b{display:block;font-size:12.5px;color:var(--gold);margin-bottom:5px;font-weight:600}
-.warn-note b{color:var(--bad)}
-kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;
-  border-radius:6px;padding:2px 7px;background:var(--soft);color:var(--ink)}
-footer{font-size:13px;color:var(--faint)}
 
 /* ---------- левое меню ---------- */
 .layout{display:flex;min-height:100vh}
@@ -107,7 +64,6 @@ footer{font-size:13px;color:var(--faint)}
 :root[data-menu="mini"] .side{width:66px}
 .side .brand{display:flex;align-items:center;gap:11px;padding:4px 8px 16px;min-width:0}
 .side .brand .mark{flex:none}
-.side .brand .txt{min-width:0}
 .side .brand .txt b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap}
 .side .brand .txt span{display:block;font-size:11.5px;color:var(--faint);white-space:nowrap}
 .side nav{display:flex;flex-direction:column;gap:3px}
@@ -135,6 +91,112 @@ footer{font-size:13px;color:var(--faint)}
   .side .txt,.side nav a span,.side .collapse span{display:none}
   .side nav a,.side .collapse{justify-content:center;padding:11px 0}
 }
+
+/* ---------- страница ---------- */
+main{padding:28px 26px 80px;display:flex;flex-direction:column;gap:46px}
+section{display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-size:12px;font-weight:600;color:var(--gold);margin:0}
+h2{margin:0;font-size:23px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.sub2{margin:0;font-size:15px;color:var(--dim);max-width:90ch;line-height:1.6}
+h3{margin:0;font-size:13px;font-weight:600;color:var(--dim)}
+p{margin:0}
+
+/* конвейер */
+.flow{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.step{flex:1 1 190px;background:var(--card);border-radius:14px;padding:16px 18px;display:flex;
+  flex-direction:column;gap:6px;min-width:0}
+.step .n{font-size:11.5px;font-weight:600;color:var(--faint)}
+.step b{font-size:14.5px;font-weight:600}
+.step span.t{font-size:13px;color:var(--dim)}
+.step.code{background:var(--ok-bg)} .step.model{background:var(--mid-bg)}
+.arrow{align-self:center;color:var(--faint);flex:none;font-size:18px;line-height:1}
+@media (max-width:1000px){.arrow{display:none}}
+
+/* сетки */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media (max-width:1250px){.grid5{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:900px){.grid2,.grid3,.grid5{grid-template-columns:1fr}}
+
+.card{background:var(--card);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:9px}
+.card h4{margin:0;font-size:14.5px;font-weight:600}
+.card p{font-size:13.5px;color:var(--dim)}
+.card .tag{align-self:flex-start;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:8px}
+.tag.code{background:var(--ok-bg);color:var(--ok)}
+.tag.model{background:var(--mid-bg);color:var(--mid)}
+
+/* шкала оценок */
+.scale-wrap{background:var(--card);border-radius:16px;padding:22px 24px;display:flex;
+  flex-direction:column;gap:16px}
+.scale-bar{display:flex;height:48px;border-radius:12px;overflow:hidden}
+.scale-bar div{display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
+.zone-bad{background:var(--bad-bg);color:var(--bad);flex:55}
+.zone-mid{background:var(--mid-bg);color:var(--mid);flex:20}
+.zone-ok{background:var(--ok-bg);color:var(--ok);flex:25}
+.scale-legend{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media (max-width:900px){.scale-legend{grid-template-columns:1fr 1fr}}
+.scale-legend div{font-size:13px;color:var(--dim)}
+.scale-legend b{display:block;font-size:13.5px;color:var(--ink);margin-bottom:2px}
+
+/* пример карточки этапа */
+.example{background:var(--card);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.example .head{display:flex;align-items:center;gap:10px}
+.example .head .nm{font-weight:600;font-size:14.5px;flex:1}
+.example .head .sc{font-weight:600;font-size:12.5px;padding:3px 10px;border-radius:8px;
+  background:var(--bad-bg);color:var(--bad)}
+.example dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px}
+.example dt{font-size:12px;font-weight:600;white-space:nowrap;padding-top:2px}
+.example dt.p{color:var(--ok)} .example dt.m{color:var(--bad)} .example dt.f{color:var(--gold)}
+.example dd{margin:0;color:var(--dim)}
+.example .q{font-size:13px;color:var(--faint);background:var(--soft);border-radius:10px;padding:11px 14px}
+.callout-side{background:var(--soft);border-radius:16px;padding:20px 22px;font-size:13.5px;
+  color:var(--dim);display:flex;flex-direction:column;gap:10px}
+.callout-side b{color:var(--ink);font-weight:600}
+
+/* примеры формулировок */
+.says{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+.say{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45}
+.say i{flex:none;width:18px;height:18px;border-radius:6px;display:grid;place-items:center;
+  font-style:normal;font-size:12px;font-weight:700;margin-top:1px}
+.say.yes i{background:var(--ok-bg);color:var(--ok)}
+.say.no i{background:var(--bad-bg);color:var(--bad)}
+.say span{color:var(--dim)}
+
+/* шаги использования */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media (max-width:1250px){.steps{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:760px){.steps{grid-template-columns:1fr}}
+.stepcard{background:var(--card);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px}
+.stepcard .num{width:26px;height:26px;border-radius:8px;background:var(--gold-soft);color:var(--gold);
+  display:grid;place-items:center;font-weight:600;font-size:13px}
+.stepcard b{font-size:14px;font-weight:600}
+.stepcard p{font-size:13px;color:var(--dim)}
+kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;
+  border-radius:6px;padding:2px 7px;background:var(--soft);color:var(--ink)}
+
+/* таблицы */
+.tablebox{background:var(--card);border-radius:16px;padding:6px 8px 10px;overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px}
+th,td{padding:12px 14px;text-align:left;vertical-align:middle}
+th{font-size:12px;font-weight:500;color:var(--faint);border-bottom:1px solid var(--line);white-space:nowrap}
+td{border-bottom:1px solid var(--line);color:var(--dim)}
+tbody tr:last-child td{border-bottom:0}
+td.n{white-space:nowrap;font-weight:600;color:var(--ink)}
+td.money{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);white-space:nowrap}
+.costbar{display:flex;align-items:center;gap:10px}
+.costbar .track{flex:1;height:8px;border-radius:5px;background:var(--soft);position:relative;
+  overflow:hidden;min-width:60px}
+.costbar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px;
+  background:linear-gradient(90deg,var(--gold-a),var(--gold-b))}
+.badge-now{font-size:11px;font-weight:600;padding:2px 8px;border-radius:7px;background:var(--ok-bg);color:var(--ok)}
+
+.note{background:var(--card);border-radius:14px;padding:16px 20px;font-size:13.5px;color:var(--dim)}
+.note b{display:block;font-size:12.5px;color:var(--gold);margin-bottom:5px;font-weight:600}
+.note.warn b{color:var(--bad)}
+ul.plain{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;color:var(--dim);font-size:13.5px}
+ul.plain b{color:var(--ink)}
+footer{font-size:13px;color:var(--faint);padding-top:6px}
 </style>
 
 <div class="layout">
@@ -152,6 +214,7 @@ footer{font-size:13px;color:var(--faint)}
   <button type="button" class="collapse" id="menu-toggle"><svg viewBox="0 0 20 20"><path d="M12 5l-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Свернуть меню</span></button>
 </aside>
 <div class="pane">
+
 <header>
   <div>
     <h1>ОКК · Гайд</h1>
@@ -169,33 +232,42 @@ footer{font-size:13px;color:var(--faint)}
 <main>
 
   <section>
-    <p class="eyebrow">Зачем это</p>
-    <h2>Разобрать каждую диагностику, а не те семь, что успел послушать руководитель</h2>
-    <p class="lead">Система берёт расшифровку зум-встречи, считает измеримое, оценивает остальное и складывает
-      разбор в одно место. Задача не в том, чтобы поставить менеджеру оценку, а в том, чтобы увидеть,
-      что именно выпало из встречи — и где это повторяется от недели к неделе.</p>
+    <p class="eyebrow">Как это работает</p>
+    <h2>Путь от записи встречи до строки в списке</h2>
+    <div class="flow">
+      <div class="step"><span class="n">01</span><b>Запись Zoom</b><span class="t">встреча, которую провёл менеджер</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">02</span><b>Расшифровка</b><span class="t">текст разговора целиком</span></div>
+      <div class="arrow">→</div>
+      <div class="step code"><span class="n">03 · код</span><b>Счётчики</b><span class="t">обязательные формулировки, вопросы, объём</span></div>
+      <div class="arrow">+</div>
+      <div class="step model"><span class="n">03 · модель</span><b>Оценки</b><span class="t">этапы, цель, следующий шаг — с цитатами</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">04</span><b>Разбор</b><span class="t">строка в списке и карточка встречи</span></div>
+    </div>
   </section>
 
   <section>
     <p class="eyebrow">Главное правило</p>
-    <h2>Цифры считает код, смыслы оценивает модель — и это разные вещи</h2>
-    <div class="two">
-      <div class="cell">
+    <h2>Цифры считает код, смыслы оценивает модель</h2>
+    <div class="grid2">
+      <div class="card">
         <span class="tag code">Считает код</span>
         <h4>Точно, спорить не о чем</h4>
         <p>Сколько раз прозвучало слово «комитет» и в каких частях встречи, названы ли даты потока
           и сказано ли про ограниченность, звучала ли запрещённая фраза, сколько задано вопросов,
-          сколько слов в расшифровке. Здесь нет никакого искусственного интеллекта — обычный поиск
-          по тексту. Ошибиться он может только если менеджер сказал это словами, которых мы не
-          предусмотрели: тогда правится список формулировок, а не оценка.</p>
+          сколько слов в расшифровке.</p>
+        <p>Здесь нет никакого искусственного интеллекта — обычный поиск по тексту. Ошибиться он может
+          только если менеджер сказал это словами, которых мы не предусмотрели: тогда правится список
+          формулировок, а не оценка.</p>
       </div>
-      <div class="cell">
+      <div class="card">
         <span class="tag model">Оценивает модель</span>
         <h4>Полезно, но требует проверки</h4>
         <p>Достигнута ли цель встречи, что с потребностями и возражениями, каким получился следующий
-          шаг, оценки по пяти этапам, резюме. Модель обязана привести цитату из расшифровки под каждую
-          оценку. Нет цитаты — критерий остаётся пустым, а не «выполненным»: пустое поле честнее
-          выдуманного.</p>
+          шаг, оценки по пяти этапам, резюме.</p>
+        <p>Модель обязана привести цитату из расшифровки под каждую оценку. Нет цитаты — критерий
+          остаётся пустым, а не «выполненным»: пустое поле честнее выдуманного.</p>
       </div>
     </div>
     <div class="note">
@@ -207,52 +279,82 @@ footer{font-size:13px;color:var(--faint)}
 
   <section>
     <p class="eyebrow">Как читать оценки</p>
-    <h2>Пять этапов встречи, шкала от 0 до 100</h2>
-    <table>
-      <thead><tr><th>Этап</th><th>Что оценивается</th></tr></thead>
-      <tbody>
-        <tr><td class="n">Установление контакта</td><td>Представился, обозначил план и тайминг, выяснил роли и кто принимает решение</td></tr>
-        <tr><td class="n">Выявление потребностей</td><td>Узнал нишу, команду, роль клиента, вытащил боль и оцифровал её, спросил про прошлый опыт обучения</td></tr>
-        <tr><td class="n">Презентация</td><td>Программа подана от названных болей, а не «вообще о продукте»; названы цена и условия</td></tr>
-        <tr><td class="n">Отработка возражений</td><td>Возражения отработаны на встрече, а не отложены на «уточню и напишу»; менеджер проверил, снято ли возражение</td></tr>
-        <tr><td class="n">Фиксация договорённостей</td><td>Следующий шаг назначен с датой, клиент подтвердил вслух, названа дата решения</td></tr>
-      </tbody>
-    </table>
-    <table>
-      <thead><tr><th>Балл</th><th>Как понимать</th></tr></thead>
-      <tbody>
-        <tr><td class="n"><span class="scale ok">75–100</span></td><td>Норма. Этап пройден, придираться не к чему</td></tr>
-        <tr><td class="n"><span class="scale warn">55–74</span></td><td>Внимание. Что-то важное просело — смотрите, что написано в «плохо»</td></tr>
-        <tr><td class="n"><span class="scale bad">ниже 55</span></td><td>Красная зона. Этап фактически не отработан</td></tr>
-        <tr><td class="n">—</td><td>Модель не нашла подтверждения в расшифровке. Не провал и не зачёт: просто нет данных</td></tr>
-      </tbody>
-    </table>
-    <p>Один низкий балл на одной встрече — это случай. Тот же низкий балл у одного человека из недели
-      в неделю — это то, ради чего всё затевалось. Смотрите на <a href="stats.html">страницу статистики</a>:
-      там видно, где просадка у отдела целиком, а где у конкретного менеджера.</p>
+    <h2>Шкала от 0 до 100 и что означают её зоны</h2>
+    <div class="scale-wrap">
+      <div class="scale-bar">
+        <div class="zone-bad">0 — 55 · красная зона</div>
+        <div class="zone-mid">55 — 75 · внимание</div>
+        <div class="zone-ok">75 — 100 · норма</div>
+      </div>
+      <div class="scale-legend">
+        <div><b>Норма</b>Этап пройден, придираться не к чему</div>
+        <div><b>Внимание</b>Что-то важное просело — смотрите, что написано в «плохо»</div>
+        <div><b>Красная зона</b>Этап фактически не отработан</div>
+        <div><b>Прочерк</b>Модель не нашла подтверждения. Не провал и не зачёт: нет данных</div>
+      </div>
+    </div>
+    <div class="grid5">
+      <div class="card"><h4>Установление контакта</h4><p>Представился, обозначил план и тайминг, выяснил роли и кто принимает решение</p></div>
+      <div class="card"><h4>Выявление потребностей</h4><p>Узнал нишу, команду, роль клиента, вытащил боль и оцифровал её, спросил про прошлый опыт обучения</p></div>
+      <div class="card"><h4>Презентация</h4><p>Программа подана от названных болей, а не «вообще о продукте»; названы цена и условия</p></div>
+      <div class="card"><h4>Отработка возражений</h4><p>Возражения отработаны на встрече, а не отложены на «уточню и напишу»</p></div>
+      <div class="card"><h4>Фиксация договорённостей</h4><p>Следующий шаг с датой, клиент подтвердил вслух, названа дата решения</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Как выглядит оценка</p>
+    <h2>Каждый балл идёт с цитатой из разговора</h2>
+    <div class="grid2">
+      <div class="example">
+        <div class="head"><span class="nm">Фиксация договорённостей</span><span class="sc">20</span></div>
+        <dl>
+          <dt class="p">Хорошо</dt><dd>Спросил напрямую, все ли задачи клиента закрыты</dd>
+          <dt class="m">Плохо</dt><dd>Итог — «соберу кейсы и вернусь». Ни даты созвона, ни приглашения в календарь</dd>
+          <dt class="f">Улучшить</dt><dd>Назначать следующий созвон прямо на встрече, до прощания</dd>
+        </dl>
+        <div class="q">«Хорошо, я тогда соберу кейсы по вашей нише и вернусь к вам с этим»</div>
+      </div>
+      <div class="callout-side">
+        <p><b>Почему цитата важнее балла</b></p>
+        <p>С баллом спорить бессмысленно — «у тебя 20 за фиксацию» звучит как приговор и вызывает защиту.
+          С цитатой спорить не о чем: менеджер сам слышит, чем закончил встречу.</p>
+        <p>Поэтому разговор стоит строить от неё: «вот здесь клиент назвал цену стопором, а следующий шаг
+          остался без даты». Если оценка кажется несправедливой — рядом ссылки на запись и полную
+          расшифровку, проверить быстрее, чем переслушивать встречу целиком.</p>
+      </div>
+    </div>
   </section>
 
   <section>
     <p class="eyebrow">Обязательные элементы</p>
     <h2>То, что должно прозвучать на каждой встрече</h2>
-    <table>
-      <thead><tr><th>Элемент</th><th>Как проверяется</th></tr></thead>
-      <tbody>
-        <tr><td class="n">«Комитет» ≥ 2 раз</td>
-            <td>Прямой подсчёт слова в расшифровке. Дополнительно видно, произнесено ли оно в трёх частях
-                встречи — в начале, середине и конце</td></tr>
-        <tr><td class="n">Даты потока и дефицит</td>
-            <td>Засчитывается, когда названы и месяц, и числа, и при этом сказано об ограниченности:
-                «ближайший», «дальше неизвестно», «два потока», «фокус-группа»</td></tr>
-        <tr><td class="n">Запрещённая фраза</td>
-            <td>«Тренинг проходит каждый месяц» и близкие формулировки — они снимают срочность</td></tr>
-      </tbody>
-    </table>
-    <div class="note warn-note">
+    <div class="grid3">
+      <div class="card">
+        <h4>«Комитет» — минимум дважды</h4>
+        <p>Прямой подсчёт слова. Отдельно видно, прозвучало ли оно в трёх частях встречи — в начале,
+          середине и конце.</p>
+      </div>
+      <div class="card">
+        <h4>Даты потока и ограниченность</h4>
+        <p>Засчитывается, только когда названы и месяц, и числа, и при этом сказано про дефицит.</p>
+        <div class="says">
+          <div class="say yes"><i>✓</i><span>«если мы говорим за июль, это 30-ое 31-ое число… но это ближайшее, дальше неизвестно»</span></div>
+          <div class="say no"><i>✕</i><span>«есть ещё поток, посмотрим по датам» — ни чисел, ни дефицита</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Запрещённая фраза</h4>
+        <p>«Тренинг проходит каждый месяц» и близкие формулировки — они снимают срочность.</p>
+        <div class="says">
+          <div class="say no"><i>✕</i><span>«тренинги у нас каждый месяц, успеете»</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note warn">
       <b>Если элемент показывает «нет» у всех подряд</b>
-      Первым делом это повод проверить не менеджеров, а формулировку критерия. Так уже было: критерий
-      «два потока» показывал ноль из десяти, потому что искал дословную фразу, а менеджеры говорят
-      «если мы говорим за июль, это 30-ое 31-ое число» и «есть ещё поток, но это ближайшее».
+      Это повод проверить не менеджеров, а формулировку критерия. Так уже было: критерий «два потока»
+      показывал ноль из десяти, потому что искал дословную фразу, а менеджеры говорят иначе.
       Критерий переписали — цифры стали осмысленными.
     </div>
   </section>
@@ -260,112 +362,109 @@ footer{font-size:13px;color:var(--faint)}
   <section>
     <p class="eyebrow">Как пользоваться</p>
     <h2>Разбор с менеджером за десять минут</h2>
-    <ol>
-      <li>Откройте <a href="./">список встреч</a> и отфильтруйте по менеджеру.</li>
-      <li>Включите «только с красной зоной» — останутся встречи, где что-то реально просело.</li>
-      <li>Откройте встречу: слева резюме и этапы с цитатами, справа результат, обязательные элементы
-        и то, что известно о клиенте.</li>
-      <li>Листайте <kbd>←</kbd> <kbd>→</kbd> — встречи переключаются в порядке списка, не выходя из окна.</li>
-      <li>Спорная оценка — откройте <b>запись</b> или <b>расшифровку</b> по ссылке в шапке окна и проверьте
-        по цитате. Модель могла ошибиться, цитата — нет.</li>
-    </ol>
-    <p>Разговор с менеджером стоит строить не от балла, а от цитаты: «вот здесь клиент назвал цену
-      стопором, а следующий шаг остался без даты» — это обсуждаемо, в отличие от «у тебя 38 за фиксацию».</p>
+    <div class="steps">
+      <div class="stepcard"><div class="num">1</div><b>Отфильтруйте</b><p>Откройте список встреч и выберите менеджера</p></div>
+      <div class="stepcard"><div class="num">2</div><b>Оставьте проблемные</b><p>Галка «только с красной зоной» — останутся встречи, где реально просело</p></div>
+      <div class="stepcard"><div class="num">3</div><b>Откройте встречу</b><p>Слева резюме и этапы с цитатами, справа результат и что известно о клиенте</p></div>
+      <div class="stepcard"><div class="num">4</div><b>Листайте</b><p><kbd>←</kbd> <kbd>→</kbd> переключают встречи, не выходя из окна</p></div>
+      <div class="stepcard"><div class="num">5</div><b>Проверьте спорное</b><p>Ссылки на запись и расшифровку — в шапке окна</p></div>
+    </div>
+    <div class="note">
+      <b>Ещё есть вопрос по встрече</b>
+      В окне разбора внизу — поле «Спросить по встрече». Вопрос уходит вместе с полной расшифровкой:
+      «что клиент сказал про бюджет», «какие вопросы задал менеджер до презентации». Ответ строится
+      только по этому разговору; если ответа в расшифровке нет, модель так и скажет.
+    </div>
   </section>
-
 
   <section>
     <p class="eyebrow">Модель можно поменять</p>
-    <h2>Сейчас работает бесплатная. Более сильная стоит меньше, чем кажется</h2>
-    <p>Разбор не привязан к конкретной модели: промпт и формат ответа одни и те же, меняется одна
-      строка в настройках. Сейчас работает бесплатная <b>minimax-m3</b> — она справляется, но
-      ограничена примерно полусотней запросов в сутки, и на длинных встречах иногда возвращает
-      пустой ответ (тогда разбор подхватывает следующая модель из списка).</p>
-    <table>
-      <thead><tr><th>Модель</th><th>Что даёт</th><th class="n">300 встреч в месяц</th></tr></thead>
-      <tbody>
-        <tr><td class="n">minimax-m3 <span class="scale ok">сейчас</span></td>
-            <td>Бесплатно, контекст на любую встречу. Лимит ~50 запросов в сутки</td>
-            <td class="n">0 ₽</td></tr>
-        <tr><td class="n">qwen3.7-flash</td>
-            <td>Без лимитов, контекст миллион токенов — влезает даже двухчасовая встреча целиком</td>
-            <td class="n">~15 ₽</td></tr>
-        <tr><td class="n">gemini-2.5-flash-lite</td>
-            <td>То же самое, другой поставщик — держим как запасной вариант</td>
-            <td class="n">~24 ₽</td></tr>
-        <tr><td class="n">deepseek-chat-v3.1</td>
-            <td>Заметно точнее в оценках и формулировках</td>
-            <td class="n">~245 ₽</td></tr>
-        <tr><td class="n">claude-haiku-4.5</td>
-            <td>Лучшее качество разбора из доступного: тоньше различает «частично» и «нет»,
-                аккуратнее с цитатами</td>
-            <td class="n">~520 ₽</td></tr>
-      </tbody>
-    </table>
-    <p>Расчёт по факту прогона: около 13 тысяч токенов на встречу и полторы тысячи на ответ,
-      по курсу 85 ₽. Если слать расшифровку целиком, а не урезанную, цифры удваиваются — и всё
-      равно остаются в пределах тысячи рублей на самой дорогой модели.</p>
-    <div class="note">
-      <b>Где реальные деньги</b>
-      Не в разборе, а в расшифровке. Перевод 300 встреч в текст с разделением говорящих — порядка
-      12 000 ₽ в месяц, это 95% всех расходов. Экономить на модели смысла нет: разница между самой
-      дешёвой и самой качественной — около 500 ₽ в месяц.
+    <h2>Сейчас работает бесплатная. Сильная стоит меньше, чем кажется</h2>
+    <p class="sub2">Разбор не привязан к конкретной модели: промпт и формат ответа одни и те же,
+      меняется одна строка в настройках. Расчёт ниже — на 300 встреч в месяц, по факту прогона
+      (около 13 тысяч токенов на встречу и полторы тысячи на ответ), курс 85 ₽.</p>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Модель</th><th>Что даёт</th><th style="width:30%">Стоимость в месяц</th><th class="money">Итого</th></tr></thead>
+        <tbody>
+          <tr><td class="n">minimax-m3 <span class="badge-now">сейчас</span></td>
+              <td>Бесплатно, контекст на любую встречу. Лимит около 50 запросов в сутки</td>
+              <td><div class="costbar"><div class="track"></div></div></td>
+              <td class="money">0 ₽</td></tr>
+          <tr><td class="n">qwen3.7-flash</td>
+              <td>Без лимитов, контекст миллион токенов — влезает двухчасовая встреча целиком</td>
+              <td><div class="costbar"><div class="track"><div class="fill" style="width:3%"></div></div></div></td>
+              <td class="money">~15 ₽</td></tr>
+          <tr><td class="n">gemini-2.5-flash-lite</td>
+              <td>То же самое, другой поставщик — запасной вариант</td>
+              <td><div class="costbar"><div class="track"><div class="fill" style="width:5%"></div></div></div></td>
+              <td class="money">~24 ₽</td></tr>
+          <tr><td class="n">deepseek-chat-v3.1</td>
+              <td>Заметно точнее в оценках и формулировках</td>
+              <td><div class="costbar"><div class="track"><div class="fill" style="width:47%"></div></div></div></td>
+              <td class="money">~245 ₽</td></tr>
+          <tr><td class="n">claude-haiku-4.5</td>
+              <td>Лучшее качество: тоньше различает «частично» и «нет», аккуратнее с цитатами</td>
+              <td><div class="costbar"><div class="track"><div class="fill" style="width:100%"></div></div></div></td>
+              <td class="money">~520 ₽</td></tr>
+        </tbody>
+      </table>
     </div>
-    <p>Практичный порядок: поток гоняем на дешёвой модели, а спорные встречи — те, где Татьяна не
-      согласна с оценкой — перепрогоняем на сильной и сравниваем. Так становится видно, где ошибается
-      модель, а где действительно провалился менеджер.</p>
-  </section>
-
-  <section>
-    <p class="eyebrow">Вопрос по встрече</p>
-    <h2>Спросить прямо в разборе</h2>
-    <p>В окне встречи внизу есть поле <b>«Спросить по встрече»</b>. Вопрос уходит вместе с полной
-      расшифровкой, ответ приходит туда же. Это для случаев, когда готового разбора не хватает:</p>
-    <ul>
-      <li>«Что именно клиент сказал про бюджет?»</li>
-      <li>«Какие вопросы менеджер задал до презентации?»</li>
-      <li>«Клиент возражал по цене или по срокам?»</li>
-      <li>«С чего началась встреча, был ли смолток?»</li>
-    </ul>
-    <p>Ответ строится только по расшифровке этой встречи — модель не видит другие встречи и не
-      знает ничего сверх текста разговора. Если в расшифровке ответа нет, она так и скажет,
-      а не придумает.</p>
+    <div class="grid2">
+      <div class="note">
+        <b>Где реальные деньги</b>
+        Не в разборе, а в расшифровке: перевод 300 встреч в текст с разделением говорящих — порядка
+        12 000 ₽ в месяц, это 95% всех расходов. Разница между самой дешёвой и самой качественной
+        моделью — около 500 ₽ в месяц, экономить тут не на чем.
+      </div>
+      <div class="note">
+        <b>Практичный порядок</b>
+        Поток гоняем на дешёвой модели, а спорные встречи — те, где Татьяна не согласна с оценкой —
+        перепрогоняем на сильной и сравниваем. Так видно, где ошибается модель, а где действительно
+        провалился менеджер.
+      </div>
+    </div>
   </section>
 
   <section>
     <p class="eyebrow">Чему пока не верить</p>
     <h2>Ограничения, о которых лучше знать заранее</h2>
-    <ul>
-      <li><b>Расшифровка автоматическая.</b> В ней есть ошибки распознавания: имена, термины и цифры
-        иногда искажены. Смысл восстанавливается, дословность — нет.</li>
-      <li><b>Говорящие не разделены.</b> Поэтому доля речи менеджера пока не считается, хотя это одна
-        из самых нужных метрик. Появится после повторной расшифровки с разделением ролей.</li>
-      <li><b>Модель ошибается.</b> Особенно на длинных встречах и в оценке «частично / нет».
-        Для того и цитаты — проверять быстрее, чем слушать.</li>
-      <li><b>Выборка пока маленькая.</b> На десятке встреч разрез по менеджерам показывает структуру,
-        но не характер человека. Судить по нему можно будет на сотне.</li>
-    </ul>
+    <div class="grid2">
+      <div class="card"><h4>Расшифровка автоматическая</h4>
+        <p>В ней есть ошибки распознавания: имена, термины и цифры иногда искажены. Смысл
+          восстанавливается, дословность — нет.</p></div>
+      <div class="card"><h4>Говорящие не разделены</h4>
+        <p>Поэтому доля речи менеджера пока не считается, хотя это одна из самых нужных метрик.
+          Появится после повторной расшифровки с разделением ролей.</p></div>
+      <div class="card"><h4>Модель ошибается</h4>
+        <p>Особенно на длинных встречах и в оценке «частично / нет». Для того и цитаты — проверять
+          быстрее, чем слушать.</p></div>
+      <div class="card"><h4>Выборка пока маленькая</h4>
+        <p>На десятке встреч разрез по менеджерам показывает структуру, но не характер человека.
+          Судить по нему можно будет на сотне.</p></div>
+    </div>
   </section>
 
   <section>
     <p class="eyebrow">Что дальше</p>
     <h2>Чего в разборе ещё нет</h2>
-    <ul>
-      <li>Доля речи менеджера и длина монологов — нужна расшифровка с разделением говорящих.</li>
-      <li>Резюме встречи прямо в карточке сделки amoCRM, чтобы не открывать дашборд на планёрке.</li>
-      <li>Список обязательных вопросов: сколько из них менеджер задал, а какие упустил.</li>
-      <li>Сравнение оценок двух моделей на одних и тех же встречах — чтобы понять, где ошибается модель.</li>
-      <li>Ночной прогон, чтобы разбор появлялся сам, без ручного запуска.</li>
+    <ul class="plain">
+      <li><b>Доля речи менеджера</b> и длина монологов — нужна расшифровка с разделением говорящих.</li>
+      <li><b>Резюме прямо в карточке сделки amoCRM</b>, чтобы не открывать дашборд на планёрке.</li>
+      <li><b>Список обязательных вопросов</b>: сколько из них менеджер задал, а какие упустил.</li>
+      <li><b>Воронка план и факт</b> с подсветкой узкого места на первой и второй линии.</li>
+      <li><b>Ночной прогон</b>, чтобы разбор появлялся сам, без ручного запуска.</li>
     </ul>
     <div class="note">
       <b>Чек-лист правится</b>
-      Критерии, нормы и обязательные формулировки — не константа. Если какой-то критерий меряет не то,
-      что нужно, его меняют, и счётчики пересчитываются по всем уже разобранным встречам без нового прогона.
+      Критерии, нормы и обязательные формулировки — не константа. Если критерий меряет не то, что нужно,
+      его меняют, и счётчики пересчитываются по всем уже разобранным встречам без нового прогона.
     </div>
   </section>
 
   <footer id="foot">—</footer>
 </main>
+
 </div>
 </div>
 
