@@ -27,6 +27,7 @@ SA_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
 TPL = os.environ.get("TPL", "dashboard.tpl.html")
 TPL_STATS = os.environ.get("TPL_STATS", "stats.tpl.html")
 TPL_GUIDE = os.environ.get("TPL_GUIDE", "guide.tpl.html")
+TPL_CHARTS = os.environ.get("TPL_CHARTS", "charts.tpl.html")
 OUT = os.environ.get("OUT", os.path.join("..", "okk-docs", "dashboard.html"))
 OUT_STATS = os.environ.get("OUT_STATS", "")   # пусто — кладём рядом с OUT как stats.html
 
@@ -131,6 +132,10 @@ def main():
     stats_out = OUT_STATS or os.path.join(out_dir, "stats.html")
     stats_tpl = io.open(TPL_STATS, encoding="utf-8").read()
     io.open(stats_out, "w", encoding="utf-8").write(stats_tpl.replace("/*__DATA__*/", data))
+
+    charts_out = os.path.join(out_dir, "charts.html")
+    charts_tpl = io.open(TPL_CHARTS, encoding="utf-8").read()
+    io.open(charts_out, "w", encoding="utf-8").write(charts_tpl.replace("/*__DATA__*/", data))
 
     guide_out = os.path.join(out_dir, "guide.html")
     guide_tpl = io.open(TPL_GUIDE, encoding="utf-8").read()

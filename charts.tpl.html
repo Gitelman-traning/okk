@@ -1,0 +1,446 @@
+<title>Дашборд ОКК</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=TikTok+Sans:opsz,wght@12..36,300..900&display=swap">
+
+<style>
+/* ---------- палитра: пастель ---------- */
+:root{
+  --page:#faf8f4; --card:#ffffff; --soft:#f3f1ec; --zebra:#faf9f6;
+  --line:#f1eee8; --line-2:#e7e3da;
+  --ink:#2b2721; --dim:#7b766f; --faint:#a29d95;
+  --gold:#8a6f3d; --gold-soft:#efe7d6; --gold-a:#d8c9a8; --gold-b:#b59f76;
+  --ok:#38765a; --ok-bg:#e8f2ec;
+  --mid:#8d6a17; --mid-bg:#fbf1de;
+  --bad:#ad4636; --bad-bg:#fbe9e6;
+  --ok-bar:#6aa87f; --mid-bar:#e0b45a; --bad-bar:#d8735c;
+  --grid:#efece6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#161718; --card:#1e2021; --soft:#232526; --zebra:#202223;
+    --line:#282a2b; --line-2:#333637;
+    --ink:#eceae5; --dim:#9a958d; --faint:#75716a;
+    --gold:#c9b487; --gold-soft:#2a2721;
+    --ok:#7cc396; --ok-bg:#1b2b23;
+    --mid:#dcb463; --mid-bg:#2c2617;
+    --bad:#e58975; --bad-bg:#2f1e1a;
+    --grid:#2a2c2d;
+  }
+}
+:root[data-theme="dark"]{
+  --page:#161718; --card:#1e2021; --soft:#232526; --zebra:#202223;
+  --line:#282a2b; --line-2:#333637;
+  --ink:#eceae5; --dim:#9a958d; --faint:#75716a;
+  --gold:#c9b487; --gold-soft:#2a2721;
+  --ok:#7cc396; --ok-bg:#1b2b23;
+  --mid:#dcb463; --mid-bg:#2c2617;
+  --bad:#e58975; --bad-bg:#2f1e1a;
+  --grid:#2a2c2d;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:Inter,"TikTok Sans",Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;
+  -webkit-font-smoothing:antialiased}
+
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 24px;background:var(--card);
+  border-bottom:1px solid var(--line)}
+.mark{width:30px;height:30px;flex:none;display:grid;place-items:center;border-radius:9px;
+  background:var(--gold-soft);color:var(--gold);font-weight:700;font-size:12px}
+header h1{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+header .sub{margin:0;font-size:12px;color:var(--dim)}
+header .spacer{flex:1}
+.stamp{font-size:12px;color:var(--faint)}
+.themer{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
+.themer button{font-family:inherit;font-size:12px;font-weight:500;background:none;border:0;
+  color:var(--dim);padding:5px 11px;border-radius:7px;cursor:pointer}
+.themer button[aria-pressed="true"]{background:var(--card);color:var(--gold);font-weight:600}
+a{color:var(--gold)}
+:focus-visible{outline:2px solid var(--gold-b);outline-offset:2px}
+
+/* ---------- левое меню ---------- */
+.layout{display:flex;min-height:100vh}
+.side{width:216px;flex:none;background:var(--card);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;gap:4px;padding:16px 12px 14px;overflow:hidden;
+  transition:width .16s ease;position:sticky;top:0;height:100vh}
+:root[data-menu="mini"] .side{width:66px}
+.side .brand{display:flex;align-items:center;gap:11px;padding:4px 8px 16px;min-width:0}
+.side .brand .mark{flex:none}
+.side .brand .txt b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap}
+.side .brand .txt span{display:block;font-size:11.5px;color:var(--faint);white-space:nowrap}
+.side nav{display:flex;flex-direction:column;gap:3px}
+.side nav a{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;
+  color:var(--dim);text-decoration:none;font-size:13.5px;white-space:nowrap}
+.side nav a:hover{background:var(--soft);color:var(--ink)}
+.side nav a.on{background:var(--gold-soft);color:var(--gold);font-weight:600}
+.side nav a svg{flex:none;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6}
+.side .grow{flex:1}
+.side .collapse{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;
+  background:none;border:0;color:var(--faint);font-family:inherit;font-size:12.5px;cursor:pointer;
+  text-align:left;white-space:nowrap}
+.side .collapse:hover{background:var(--soft);color:var(--ink)}
+.side .collapse svg{flex:none;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;
+  transition:transform .16s ease}
+:root[data-menu="mini"] .side .collapse svg{transform:rotate(180deg)}
+:root[data-menu="mini"] .side .txt,
+:root[data-menu="mini"] .side nav a span,
+:root[data-menu="mini"] .side .collapse span{display:none}
+:root[data-menu="mini"] .side nav a,
+:root[data-menu="mini"] .side .collapse{justify-content:center;padding:11px 0}
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+@media (max-width:760px){
+  .side{width:66px}
+  .side .txt,.side nav a span,.side .collapse span{display:none}
+  .side nav a,.side .collapse{justify-content:center;padding:11px 0}
+}
+
+/* ---------- сетка графиков ---------- */
+main{padding:22px 24px 70px;display:flex;flex-direction:column;gap:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:1100px){.grid{grid-template-columns:1fr}}
+.widget{background:var(--card);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.widget.wide{grid-column:1 / -1}
+.wtitle{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.wtitle h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.wtitle span{font-size:12.5px;color:var(--faint)}
+.chart{width:100%;overflow:visible}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.legend .dash{width:14px;height:0;border-top:2px dashed var(--faint);border-radius:0}
+.takeaway{font-size:13px;color:var(--dim);background:var(--soft);border-radius:11px;padding:11px 14px}
+.takeaway b{color:var(--ink);font-weight:600}
+text{font-family:Inter,Arial,sans-serif}
+.axis{fill:var(--faint);font-size:11px}
+.axis-name{fill:var(--dim);font-size:11.5px;font-weight:500}
+.gridline{stroke:var(--grid);stroke-width:1}
+.baseline{stroke:var(--line-2);stroke-width:1}
+footer{padding:8px 24px 30px;font-size:12px;color:var(--faint)}
+</style>
+
+<div class="layout">
+<aside class="side">
+  <div class="brand">
+    <div class="mark">12</div>
+    <div class="txt"><b>ОКК</b><span>разбор диагностик</span></div>
+  </div>
+  <nav>
+    <a href="./" title="Встречи"><svg viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h9" stroke-linecap="round"/></svg><span>Встречи</span></a>
+    <a href="stats.html" title="Статистика"><svg viewBox="0 0 20 20"><path d="M4 16V9M10 16V4M16 16v-5" stroke-linecap="round"/></svg><span>Статистика</span></a>
+    <a href="charts.html" class="on" title="Дашборд"><svg viewBox="0 0 20 20"><path d="M3 3h6v6H3V3zM11 3h6v4h-6V3zM11 9h6v8h-6V9zM3 11h6v6H3v-6z" stroke-linejoin="round"/></svg><span>Дашборд</span></a>
+    <a href="guide.html" title="Гайд"><svg viewBox="0 0 20 20"><path d="M4 4h5a2 2 0 012 2v10a2 2 0 00-2-2H4V4zM16 4h-5a2 2 0 00-2 2v10a2 2 0 012-2h5V4z" stroke-linejoin="round"/></svg><span>Гайд</span></a>
+  </nav>
+  <div class="grow"></div>
+  <button type="button" class="collapse" id="menu-toggle"><svg viewBox="0 0 20 20"><path d="M12 5l-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Свернуть меню</span></button>
+</aside>
+<div class="pane">
+
+<header>
+  <div>
+    <h1>ОКК · Дашборд</h1>
+    <p class="sub">Сравнение менеджеров и динамика по дням</p>
+  </div>
+  <div class="spacer"></div>
+  <div class="themer" role="group" aria-label="Тема оформления">
+    <button type="button" data-set="auto" aria-pressed="true">Авто</button>
+    <button type="button" data-set="light" aria-pressed="false">Светлая</button>
+    <button type="button" data-set="dark" aria-pressed="false">Тёмная</button>
+  </div>
+  <div class="stamp" id="stamp">—</div>
+</header>
+
+<main>
+  <div class="grid">
+    <div class="widget wide">
+      <div class="wtitle"><h2>Профиль по этапам</h2><span id="t-profile"></span></div>
+      <div id="c-profile"></div>
+      <div class="legend" id="l-profile"></div>
+      <div class="takeaway" id="k-profile"></div>
+    </div>
+
+    <div class="widget">
+      <div class="wtitle"><h2>Слабое место каждого менеджера</h2><span>худший этап и насколько он ниже отдела</span></div>
+      <div id="c-weak"></div>
+      <div class="takeaway" id="k-weak"></div>
+    </div>
+
+    <div class="widget">
+      <div class="wtitle"><h2>Как распределены оценки</h2><span>доля встреч в каждой зоне</span></div>
+      <div id="c-zones"></div>
+      <div class="legend">
+        <span><i style="background:var(--bad-bar)"></i>красная зона</span>
+        <span><i style="background:var(--mid-bar)"></i>внимание</span>
+        <span><i style="background:var(--ok-bar)"></i>норма</span>
+      </div>
+      <div class="takeaway" id="k-zones"></div>
+    </div>
+
+    <div class="widget">
+      <div class="wtitle"><h2>Фиксация и вероятность сделки</h2><span>каждая точка — встреча</span></div>
+      <div id="c-scatter"></div>
+      <div class="takeaway" id="k-scatter"></div>
+    </div>
+
+    <div class="widget">
+      <div class="wtitle"><h2>Встречи по дням</h2><span>количество и средняя фиксация</span></div>
+      <div id="c-days"></div>
+      <div class="legend">
+        <span><i style="background:var(--gold-b)"></i>встреч за день</span>
+        <span><i class="dash"></i>средняя фиксация</span>
+      </div>
+      <div class="takeaway" id="k-days"></div>
+    </div>
+  </div>
+
+  <footer id="foot">—</footer>
+</main>
+
+</div>
+</div>
+
+<script>
+/* левое меню: развёрнуто или иконками — выбор запоминается */
+(function(){
+  var KEY="okk-menu";
+  function read(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+  function store(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+  function paint(mode){
+    document.documentElement.setAttribute("data-menu",mode);
+    var b=document.getElementById("menu-toggle");
+    if(b) b.setAttribute("aria-expanded", mode==="mini" ? "false" : "true");
+  }
+  paint(read()||"full");
+  var btn=document.getElementById("menu-toggle");
+  if(btn) btn.addEventListener("click",function(){
+    var next=document.documentElement.getAttribute("data-menu")==="mini" ? "full" : "mini";
+    store(next); paint(next);
+  });
+})();
+
+(function(){
+  var KEY="okk-theme";
+  function store(v){try{v?localStorage.setItem(KEY,v):localStorage.removeItem(KEY)}catch(e){}}
+  function read(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+  function paint(mode){
+    if(mode==="light"||mode==="dark"){document.documentElement.setAttribute("data-theme",mode)}
+    else{document.documentElement.removeAttribute("data-theme")}
+    document.querySelectorAll(".themer button").forEach(function(b){
+      b.setAttribute("aria-pressed", b.getAttribute("data-set")===(mode||"auto")?"true":"false")});
+  }
+  paint(read()||"auto");
+  document.querySelector(".themer").addEventListener("click",function(e){
+    var b=e.target.closest("button[data-set]"); if(!b)return;
+    var m=b.getAttribute("data-set"); store(m==="auto"?null:m); paint(m);
+  });
+})();
+
+var PAYLOAD = /*__DATA__*/;
+var DATA = PAYLOAD.items;
+var STAGES = ["Контакт","Потребности","Презентация","Возражения","Фиксация"];
+/* линии менеджеров: тёплая гамма, чтобы не спорить со светофором оценок */
+var LINE = ["#b59f76","#8a6f3d","#a58a5f","#c9a86b"];
+
+document.getElementById("stamp").textContent="прогон "+PAYLOAD.generated;
+document.getElementById("foot").textContent =
+  "Встреч в выборке: " + DATA.length + ". Оценки этапов дала модель " + PAYLOAD.model
+  + ", счётчики посчитаны кодом. На такой выборке графики показывают структуру, а не характер человека —"
+  + " судить по ним можно будет на сотне встреч.";
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function nums(a){return a.filter(function(x){return typeof x==="number"})}
+function avg(a){var v=nums(a); return v.length?Math.round(v.reduce(function(x,y){return x+y},0)/v.length):null}
+function svg(w,h,inner){return '<svg class="chart" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMidYMid meet" role="img">'+inner+'</svg>'}
+function dateKey(s){var m=/^(\d{1,2})[.](\d{1,2})[.](\d{2,4})/.exec(String(s||""));
+  if(!m) return ""; var y=m[3].length===2?"20"+m[3]:m[3];
+  return y+("0"+m[2]).slice(-2)+("0"+m[1]).slice(-2)}
+
+/* менеджеры и их встречи */
+var BY={};
+DATA.forEach(function(d){var m=d.mgr||"не указан";(BY[m]=BY[m]||[]).push(d)});
+var MGRS=Object.keys(BY).sort(function(a,b){return BY[b].length-BY[a].length});
+var TEAM=[0,1,2,3,4].map(function(i){return avg(DATA.map(function(d){return d.s[i]}))});
+
+/* ---------- профиль по этапам: линия на каждого менеджера + пунктир отдела ---------- */
+(function(){
+  var W=1000,H=320,L=54,R=20,T=18,B=44;
+  var iw=W-L-R, ih=H-T-B;
+  var x=function(i){return L+iw*(i/(STAGES.length-1))};
+  var y=function(v){return T+ih*(1-v/100)};
+  var g="";
+  [0,25,50,75,100].forEach(function(v){
+    g+='<line class="gridline" x1="'+L+'" y1="'+y(v)+'" x2="'+(W-R)+'" y2="'+y(v)+'"/>'
+      +'<text class="axis" x="'+(L-10)+'" y="'+(y(v)+4)+'" text-anchor="end">'+v+'</text>';
+  });
+  /* зона нормы подсвечена мягко */
+  g='<rect x="'+L+'" y="'+y(100)+'" width="'+iw+'" height="'+(y(75)-y(100))+'" fill="var(--ok-bg)" opacity=".55"/>'+g;
+  STAGES.forEach(function(s,i){
+    g+='<text class="axis-name" x="'+x(i)+'" y="'+(H-16)+'" text-anchor="middle">'+s+'</text>';
+  });
+  function line(vals,color,width,dash){
+    var pts=vals.map(function(v,i){return (v==null?null:[x(i),y(v)])}).filter(Boolean);
+    if(pts.length<2) return "";
+    var d=pts.map(function(p,i){return (i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)}).join(" ");
+    var dots=pts.map(function(p){return '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3.5" fill="'+color+'"/>'}).join("");
+    return '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="'+width+'" stroke-linejoin="round"'
+      +(dash?' stroke-dasharray="6 5"':'')+'/>'+(dash?"":dots);
+  }
+  g+=line(TEAM,"var(--faint)",2,true);
+  MGRS.forEach(function(m,idx){
+    g+=line([0,1,2,3,4].map(function(i){return avg(BY[m].map(function(d){return d.s[i]}))}),
+            LINE[idx%LINE.length],2.4,false);
+  });
+  document.getElementById("c-profile").innerHTML=svg(W,H,g);
+  document.getElementById("t-profile").textContent="средний балл по каждому этапу, "+MGRS.length+" менеджера";
+  document.getElementById("l-profile").innerHTML =
+    MGRS.map(function(m,i){return '<span><i style="background:'+LINE[i%LINE.length]+'"></i>'+esc(m)+' · '+BY[m].length+'</span>'}).join("")
+    + '<span><i class="dash"></i>среднее по отделу</span>';
+
+  var worst=TEAM.indexOf(Math.min.apply(null,nums(TEAM)));
+  var best=TEAM.indexOf(Math.max.apply(null,nums(TEAM)));
+  document.getElementById("k-profile").innerHTML =
+    "Линии почти повторяют друг друга: у всех подъём на «"+STAGES[best]+"» ("+TEAM[best]+") и провал на «"
+    +STAGES[worst]+"» ("+TEAM[worst]+"). <b>Это не про отдельного человека, это про то, как в отделе принято "
+    +"вести встречу</b> — значит и чинится обучением всей команды, а не разговором с одним менеджером.";
+})();
+
+/* ---------- слабое место каждого менеджера ---------- */
+(function(){
+  var rows=MGRS.map(function(m){
+    var vals=[0,1,2,3,4].map(function(i){return avg(BY[m].map(function(d){return d.s[i]}))});
+    var min=Math.min.apply(null,nums(vals));
+    var idx=vals.indexOf(min);
+    return {m:m,stage:STAGES[idx],v:min,team:TEAM[idx],n:BY[m].length};
+  }).sort(function(a,b){return a.v-b.v});
+
+  var W=520,H=Math.max(150,rows.length*54+30),L=130,R=54,T=10;
+  var iw=W-L-R;
+  var g="";
+  rows.forEach(function(r,i){
+    var yy=T+i*54;
+    var w=iw*(r.v/100), wt=iw*(r.team/100);
+    var color=r.v>=75?"var(--ok-bar)":r.v>=55?"var(--mid-bar)":"var(--bad-bar)";
+    g+='<text class="axis-name" x="'+(L-12)+'" y="'+(yy+15)+'" text-anchor="end">'+esc(r.m)+'</text>'
+      +'<text class="axis" x="'+(L-12)+'" y="'+(yy+31)+'" text-anchor="end">'+esc(r.stage)+'</text>'
+      +'<rect x="'+L+'" y="'+yy+'" width="'+iw+'" height="22" rx="6" fill="var(--soft)"/>'
+      +'<rect x="'+L+'" y="'+yy+'" width="'+w.toFixed(1)+'" height="22" rx="6" fill="'+color+'"/>'
+      +'<line x1="'+(L+wt).toFixed(1)+'" y1="'+(yy-3)+'" x2="'+(L+wt).toFixed(1)+'" y2="'+(yy+25)+'" stroke="var(--faint)" stroke-width="2" stroke-dasharray="3 3"/>'
+      +'<text class="axis-name" x="'+(W-R+10)+'" y="'+(yy+16)+'">'+r.v+'</text>';
+  });
+  g+='<text class="axis" x="'+L+'" y="'+(H-6)+'">пунктир — среднее по отделу на том же этапе</text>';
+  document.getElementById("c-weak").innerHTML=svg(W,H,g);
+
+  var top=rows[0];
+  document.getElementById("k-weak").innerHTML =
+    "Хуже всего сейчас у <b>"+esc(top.m)+"</b>: «"+esc(top.stage)+"» на "+top.v
+    +" при "+top.team+" по отделу. Это встреч: "+top.n+" — на таком числе вывод предварительный, "
+    +"но с этого этапа стоит начать разбор.";
+})();
+
+/* ---------- распределение оценок по зонам ---------- */
+(function(){
+  var W=520,H=250,L=112,R=40,T=10,B=26;
+  var iw=W-L-R, rowH=(H-T-B)/STAGES.length;
+  var g="";
+  STAGES.forEach(function(s,i){
+    var vals=nums(DATA.map(function(d){return d.s[i]}));
+    var bad=vals.filter(function(v){return v<55}).length;
+    var mid=vals.filter(function(v){return v>=55&&v<75}).length;
+    var ok=vals.filter(function(v){return v>=75}).length;
+    var n=vals.length||1;
+    var yy=T+i*rowH+6, h=rowH-16;
+    var x=L;
+    [[bad,"var(--bad-bar)"],[mid,"var(--mid-bar)"],[ok,"var(--ok-bar)"]].forEach(function(p){
+      var w=iw*(p[0]/n);
+      if(w>0){
+        g+='<rect x="'+x.toFixed(1)+'" y="'+yy+'" width="'+w.toFixed(1)+'" height="'+h+'" fill="'+p[1]+'"/>';
+        if(w>22) g+='<text class="axis" x="'+(x+w/2).toFixed(1)+'" y="'+(yy+h/2+4)+'" text-anchor="middle" fill="#fff">'+p[0]+'</text>';
+      }
+      x+=w;
+    });
+    g+='<text class="axis-name" x="'+(L-12)+'" y="'+(yy+h/2+4)+'" text-anchor="end">'+s+'</text>';
+  });
+  document.getElementById("c-zones").innerHTML=svg(W,H,g);
+
+  var fixVals=nums(DATA.map(function(d){return d.s[4]}));
+  var fixBad=fixVals.filter(function(v){return v<55}).length;
+  document.getElementById("k-zones").innerHTML =
+    "На фиксации в красной зоне <b>"+fixBad+" встреч из "+fixVals.length+"</b>, на контакте — почти ни одной. "
+    +"Отдел уверенно начинает разговор и почти не умеет его заканчивать.";
+})();
+
+/* ---------- фиксация против вероятности ---------- */
+(function(){
+  var W=520,H=280,L=48,R=18,T=14,B=44;
+  var iw=W-L-R, ih=H-T-B;
+  var x=function(v){return L+iw*(v/100)};
+  var y=function(v){return T+ih*(1-v/100)};
+  var g="";
+  [0,25,50,75,100].forEach(function(v){
+    g+='<line class="gridline" x1="'+L+'" y1="'+y(v)+'" x2="'+(W-R)+'" y2="'+y(v)+'"/>'
+      +'<text class="axis" x="'+(L-8)+'" y="'+(y(v)+4)+'" text-anchor="end">'+v+'</text>'
+      +'<line class="gridline" x1="'+x(v)+'" y1="'+T+'" x2="'+x(v)+'" y2="'+(T+ih)+'"/>'
+      +'<text class="axis" x="'+x(v)+'" y="'+(T+ih+18)+'" text-anchor="middle">'+v+'</text>';
+  });
+  g+='<text class="axis-name" x="'+(L+iw/2)+'" y="'+(H-8)+'" text-anchor="middle">фиксация договорённостей</text>'
+    +'<text class="axis-name" transform="translate(14,'+(T+ih/2)+') rotate(-90)" text-anchor="middle">вероятность сделки</text>';
+  DATA.forEach(function(d){
+    if(typeof d.s[4]!=="number"||typeof d.prob!=="number") return;
+    var color=d.achieved==="Да"?"var(--ok-bar)":d.achieved==="Частично"?"var(--mid-bar)":"var(--bad-bar)";
+    g+='<circle cx="'+x(d.s[4]).toFixed(1)+'" cy="'+y(d.prob).toFixed(1)+'" r="6" fill="'+color+'" opacity=".85">'
+      +'<title>'+esc(d.client)+' · фиксация '+d.s[4]+', вероятность '+d.prob+'%</title></circle>';
+  });
+  document.getElementById("c-scatter").innerHTML=svg(W,H,g);
+
+  var withFix=DATA.filter(function(d){return typeof d.s[4]==="number"&&typeof d.prob==="number"});
+  var low=withFix.filter(function(d){return d.s[4]<45});
+  var lowAvg=avg(low.map(function(d){return d.prob}));
+  var restAvg=avg(withFix.filter(function(d){return d.s[4]>=45}).map(function(d){return d.prob}));
+  document.getElementById("k-scatter").innerHTML =
+    "Где фиксация ниже 45, средняя вероятность сделки <b>"+(lowAvg==null?"—":lowAvg+"%")+"</b>, "
+    +"где выше — <b>"+(restAvg==null?"—":restAvg+"%")+"</b>. Наведите на точку, чтобы увидеть встречу.";
+})();
+
+/* ---------- встречи по дням ---------- */
+(function(){
+  var days={};
+  DATA.forEach(function(d){
+    var k=d.held||"—";
+    (days[k]=days[k]||[]).push(d);
+  });
+  var keys=Object.keys(days).sort(function(a,b){return dateKey(a)<dateKey(b)?-1:1});
+  var W=520,H=250,L=40,R=40,T=14,B=40;
+  var iw=W-L-R, ih=H-T-B;
+  var maxN=Math.max.apply(null,keys.map(function(k){return days[k].length}));
+  var bw=Math.min(46, iw/Math.max(keys.length,1)*0.55);
+  var cx=function(i){return L+iw*((i+0.5)/keys.length)};
+  var g="";
+  [0,50,100].forEach(function(v){
+    g+='<line class="gridline" x1="'+L+'" y1="'+(T+ih*(1-v/100))+'" x2="'+(W-R)+'" y2="'+(T+ih*(1-v/100))+'"/>'
+      +'<text class="axis" x="'+(W-R+8)+'" y="'+(T+ih*(1-v/100)+4)+'">'+v+'</text>';
+  });
+  keys.forEach(function(k,i){
+    var n=days[k].length;
+    var h=ih*(n/maxN);
+    g+='<rect x="'+(cx(i)-bw/2).toFixed(1)+'" y="'+(T+ih-h).toFixed(1)+'" width="'+bw.toFixed(1)
+      +'" height="'+h.toFixed(1)+'" rx="7" fill="var(--gold-a)"/>'
+      +'<text class="axis-name" x="'+cx(i)+'" y="'+(T+ih-h-7).toFixed(1)+'" text-anchor="middle">'+n+'</text>'
+      +'<text class="axis" x="'+cx(i)+'" y="'+(H-16)+'" text-anchor="middle">'+esc(k)+'</text>';
+  });
+  var pts=keys.map(function(k,i){
+    var a=avg(days[k].map(function(d){return d.s[4]}));
+    return a==null?null:[cx(i), T+ih*(1-a/100), a];
+  }).filter(Boolean);
+  if(pts.length>1){
+    g+='<path d="'+pts.map(function(p,i){return (i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)}).join(" ")
+      +'" fill="none" stroke="var(--bad-bar)" stroke-width="2.2" stroke-dasharray="6 5"/>';
+  }
+  pts.forEach(function(p){
+    g+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="4" fill="var(--bad-bar)"><title>средняя фиксация '+p[2]+'</title></circle>';
+  });
+  document.getElementById("c-days").innerHTML=svg(W,H,g);
+  document.getElementById("k-days").innerHTML =
+    "Разобрано дней: <b>"+keys.length+"</b>. Когда прогон пойдёт по всей базе, здесь будет видно, "
+    +"падает ли качество встреч в пиковые дни — три диагностики подряд выматывают, и это должно быть заметно.";
+})();
+</script>
