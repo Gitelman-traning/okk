@@ -241,6 +241,24 @@ a{color:var(--gold)}
   .side .txt,.side nav a span,.side .collapse span{display:none}
   .side nav a,.side .collapse{justify-content:center;padding:11px 0}
 }
+
+/* ---------- подсказки к колонкам ---------- */
+th .hint{margin-left:5px;width:15px;height:15px;border-radius:50%;border:0;padding:0;cursor:pointer;
+  background:var(--soft);color:var(--faint);font-family:inherit;font-size:10px;font-weight:600;
+  line-height:15px;vertical-align:middle}
+th .hint:hover{background:var(--gold-soft);color:var(--gold)}
+.pop{position:fixed;z-index:40;display:none;width:290px;background:var(--card);border-radius:14px;
+  box-shadow:0 12px 34px -14px rgba(40,35,28,.45);padding:16px 18px;font-size:13px;line-height:1.5;
+  color:var(--dim);border:1px solid var(--line)}
+.pop.open{display:block}
+.pop h4{margin:0 0 4px;font-size:14px;font-weight:600;color:var(--ink)}
+.pop .by{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:7px;margin-bottom:8px}
+.pop .by.code{background:var(--ok-bg);color:var(--ok)}
+.pop .by.model{background:var(--mid-bg);color:var(--mid)}
+.pop .by.src{background:var(--soft);color:var(--faint)}
+.pop p{margin:0 0 10px}
+.pop a{display:inline-block;font-size:12.5px;font-weight:600;color:var(--gold);text-decoration:none}
+.pop a:hover{text-decoration:underline}
 </style>
 
 <div class="layout">
@@ -299,23 +317,23 @@ a{color:var(--gold)}
     <table id="grid">
       <thead>
         <tr>
-          <th class="c1" data-sort="held">Когда</th>
-          <th class="c2" data-sort="client">Клиент</th>
-          <th data-sort="mgr">Менеджер</th>
-          <th>Ссылки</th>
-          <th data-sort="goal">Цель встречи</th>
-          <th data-sort="achieved">Цель достигнута</th>
-          <th data-sort="prob">Вер.</th>
-          <th class="group" data-sort="s0">Контакт</th>
-          <th class="group" data-sort="s1">Потребн.</th>
-          <th class="group" data-sort="s2">Презент.</th>
-          <th class="group" data-sort="s3">Возраж.</th>
-          <th class="group" data-sort="s4">Фиксация</th>
-          <th data-sort="komitet">Комитет</th>
-          <th data-sort="scarcity">Даты и дефицит</th>
-          <th data-sort="questions">Вопросов</th>
-          <th data-sort="next">Следующий шаг</th>
-          <th>Флаги</th>
+          <th class="c1" data-sort="held">Когда<button type="button" class="hint" data-hint="held" aria-label="Что это за колонка">?</button></th>
+          <th class="c2" data-sort="client">Клиент<button type="button" class="hint" data-hint="client" aria-label="Что это за колонка">?</button></th>
+          <th data-sort="mgr">Менеджер<button type="button" class="hint" data-hint="mgr" aria-label="Что это за колонка">?</button></th>
+          <th>Ссылки<button type="button" class="hint" data-hint="links" aria-label="Что это за колонка">?</button></th>
+          <th data-sort="goal">Цель встречи<button type="button" class="hint" data-hint="goal" aria-label="Что это за колонка">?</button></th>
+          <th data-sort="achieved">Цель достигнута<button type="button" class="hint" data-hint="achieved" aria-label="Что это за колонка">?</button></th>
+          <th data-sort="prob">Вер.<button type="button" class="hint" data-hint="prob" aria-label="Что это за колонка">?</button></th>
+          <th class="group" data-sort="s0">Контакт<button type="button" class="hint" data-hint="s0" aria-label="Что это за колонка">?</button></th>
+          <th class="group" data-sort="s1">Потребн.<button type="button" class="hint" data-hint="s1" aria-label="Что это за колонка">?</button></th>
+          <th class="group" data-sort="s2">Презент.<button type="button" class="hint" data-hint="s2" aria-label="Что это за колонка">?</button></th>
+          <th class="group" data-sort="s3">Возраж.<button type="button" class="hint" data-hint="s3" aria-label="Что это за колонка">?</button></th>
+          <th class="group" data-sort="s4">Фиксация<button type="button" class="hint" data-hint="s4" aria-label="Что это за колонка">?</button></th>
+          <th data-sort="komitet">Комитет<button type="button" class="hint" data-hint="komitet" aria-label="Что это за колонка">?</button></th>
+          <th data-sort="scarcity">Даты и дефицит<button type="button" class="hint" data-hint="scarcity" aria-label="Что это за колонка">?</button></th>
+          <th data-sort="questions">Вопросов<button type="button" class="hint" data-hint="questions" aria-label="Что это за колонка">?</button></th>
+          <th data-sort="next">Следующий шаг<button type="button" class="hint" data-hint="next" aria-label="Что это за колонка">?</button></th>
+          <th>Флаги<button type="button" class="hint" data-hint="flags" aria-label="Что это за колонка">?</button></th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -396,6 +414,66 @@ a{color:var(--gold)}
     var b=e.target.closest("button[data-skin]"); if(!b)return;
     var s=b.getAttribute("data-skin"); store(s); paint(s);
   });
+})();
+
+
+/* что означает каждая колонка: подсказка + ссылка на разбор в гайде */
+var HINTS = {
+  held:{t:"Когда",by:"src",d:"Дата, когда встреча реально состоялась. Берётся из таблицы записей, а не из даты разбора."},
+  client:{t:"Клиент",by:"src",d:"Имя контакта из сделки amoCRM."},
+  mgr:{t:"Менеджер",by:"src",d:"Ответственный за сделку на момент встречи."},
+  links:{t:"Ссылки",by:"src",d:"Карточка сделки в amoCRM и запись встречи в Zoom. Открываются в новой вкладке, разбор при этом не открывается."},
+  goal:{t:"Цель встречи",by:"model",d:"Чего менеджер добивался на этой встрече — модель формулирует одной фразой по разговору."},
+  achieved:{t:"Цель достигнута",by:"model",d:"Да, частично или нет. Рядом в разборе всегда есть причина, если цель не достигнута."},
+  prob:{t:"Вероятность сделки",by:"model",d:"Оценка модели по тому, как клиент вёл себя в разговоре: интерес, возражения, готовность к следующему шагу."},
+  s0:{t:"Установление контакта",by:"model",d:"Представился, обозначил план и тайминг, выяснил роли и кто принимает решение.",h:"#stages"},
+  s1:{t:"Выявление потребностей",by:"model",d:"Узнал нишу, команду и роль клиента, вытащил боль и оцифровал её, спросил про прошлый опыт обучения.",h:"#stages"},
+  s2:{t:"Презентация",by:"model",d:"Программа подана от названных болей, а не «вообще о продукте»; названы цена и условия.",h:"#stages"},
+  s3:{t:"Отработка возражений",by:"model",d:"Возражения отработаны на встрече, а не отложены на «уточню и напишу»; менеджер проверил, снято ли возражение.",h:"#stages"},
+  s4:{t:"Фиксация договорённостей",by:"model",d:"Следующий шаг назначен с датой, клиент подтвердил вслух, названа дата решения.",h:"#stages"},
+  komitet:{t:"Комитет",by:"code",d:"Сколько раз прозвучало слово «комитет». Норма — минимум дважды; в разборе видно, было ли оно во всех трёх частях встречи.",h:"#musts"},
+  scarcity:{t:"Даты и дефицит",by:"code",d:"Засчитывается, только если названы месяц и числа потока и при этом сказано про ограниченность: «ближайший», «дальше неизвестно», «фокус-группа».",h:"#musts"},
+  questions:{t:"Вопросов",by:"code",d:"Сколько вопросов менеджер задал за встречу. Норма — от 60; медиана по разобранным около 95.",h:"#musts"},
+  next:{t:"Следующий шаг",by:"model",d:"Что зафиксировано в конце встречи словами менеджера. Отдельно проверяется, названа ли дата."},
+  flags:{t:"Флаги",by:"code",d:"Короткие метки проблем: «нет даты» — следующий шаг без даты, «не закрыл» — фиксация ниже 40, «без комитета» — слово не прозвучало."}
+};
+
+(function(){
+  var pop=document.createElement("div");
+  pop.className="pop"; pop.setAttribute("role","dialog");
+  document.body.appendChild(pop);
+
+  function close(){pop.classList.remove("open")}
+
+  function open(btn,key){
+    var h=HINTS[key]; if(!h) return;
+    var by = h.by==="code" ? '<span class="by code">считает код</span>'
+           : h.by==="model" ? '<span class="by model">оценивает модель</span>'
+           : '<span class="by src">из amoCRM</span>';
+    pop.innerHTML='<h4>'+esc(h.t)+'</h4>'+by+'<p>'+esc(h.d)+'</p>'
+      +'<a href="guide.html'+(h.h||"")+'">Как это оценивается →</a>';
+    pop.classList.add("open");
+    var r=btn.getBoundingClientRect(), w=290;
+    var left=Math.min(Math.max(10,r.left-8), window.innerWidth-w-10);
+    var top=r.bottom+8;
+    if(top+pop.offsetHeight>window.innerHeight-10) top=Math.max(10,r.top-pop.offsetHeight-8);
+    pop.style.left=left+"px"; pop.style.top=top+"px";
+  }
+
+  document.addEventListener("click",function(e){
+    var btn=e.target.closest("th .hint");
+    if(btn){
+      e.stopPropagation();          // клик по заголовку сортирует — подсказка не должна этого делать
+      var key=btn.getAttribute("data-hint");
+      if(pop.classList.contains("open") && pop.dataset.key===key){close();return}
+      pop.dataset.key=key; open(btn,key);
+      return;
+    }
+    if(!e.target.closest(".pop")) close();
+  }, true);
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")close()});
+  window.addEventListener("resize",close);
+  document.querySelector(".tablebox").addEventListener("scroll",close);
 })();
 
 var PAYLOAD = /*__DATA__*/;

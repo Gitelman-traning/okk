@@ -94,7 +94,7 @@ a{color:var(--gold)}
 
 /* ---------- страница ---------- */
 main{padding:28px 26px 80px;display:flex;flex-direction:column;gap:46px}
-section{display:flex;flex-direction:column;gap:16px}
+section{display:flex;flex-direction:column;gap:16px;scroll-margin-top:20px}
 .eyebrow{font-size:12px;font-weight:600;color:var(--gold);margin:0}
 h2{margin:0;font-size:23px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
 .sub2{margin:0;font-size:15px;color:var(--dim);max-width:90ch;line-height:1.6}
@@ -278,7 +278,7 @@ footer{font-size:13px;color:var(--faint);padding-top:6px}
   </section>
 
   <section>
-    <p class="eyebrow">Как читать оценки</p>
+    <p class="eyebrow" id="stages">Как читать оценки</p>
     <h2>Шкала от 0 до 100 и что означают её зоны</h2>
     <div class="scale-wrap">
       <div class="scale-bar">
@@ -327,7 +327,7 @@ footer{font-size:13px;color:var(--faint);padding-top:6px}
   </section>
 
   <section>
-    <p class="eyebrow">Обязательные элементы</p>
+    <p class="eyebrow" id="musts">Обязательные элементы</p>
     <h2>То, что должно прозвучать на каждой встрече</h2>
     <div class="grid3">
       <div class="card">
