@@ -49,6 +49,8 @@ MAX_CHARS = 45000        # обрезка расшифровки перед от
 LIMIT = int(os.environ.get("LIMIT") or "5")
 PAUSE = int(os.environ.get("PAUSE") or "8")   # пауза между встречами, сек
 MODEL_ENV = os.environ.get("OKK_MODEL", "").strip()
+# Разбирать только встречи выбранных менеджеров: "Камилла,Мурад" — совпадение по части фамилии.
+MANAGERS = [m.strip().lower() for m in os.environ.get("MANAGERS", "").split(",") if m.strip()]
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
 GOOGLE_SA_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
@@ -418,6 +420,8 @@ def main():
     rows = [dict(zip(hdr, r + [""] * (len(hdr) - len(r)))) for r in data[1:]]
     pending = [r for r in rows if r.get("doc_url", "").strip()]
 
+    zoom_meta = read_zoom_meta(values)
+
     # уже разобранные — по ID сделки
     ensure_tab(sheets)
     done_rows = values.get(spreadsheetId=MARKETING_SHEET_ID,
@@ -426,14 +430,22 @@ def main():
     pending = [r for r in pending if r.get("ID", "").strip() not in done]
 
     # свежие сверху: лист заполняется сверху вниз, значит новые — в конце
-    pending = list(reversed(pending))[:LIMIT]
+    pending = list(reversed(pending))
+
+    if MANAGERS:
+        before = len(pending)
+        pending = [r for r in pending
+                   if any(m in (zoom_meta.get(str(r.get("ID", "")).strip(), {})
+                                .get("manager", "").lower()) for m in MANAGERS)]
+        log("фильтр по менеджерам %s: осталось %d из %d" % (MANAGERS, len(pending), before))
+
+    pending = pending[:LIMIT]
     log("встреч с расшифровкой: %d, уже разобрано: %d, беру за прогон: %d"
         % (len(rows), len(done), len(pending)))
     if not pending:
         return {"ok": 0, "fail": 0}
 
     models = pick_models(headers)
-    zoom_meta = read_zoom_meta(values)
     log("карточек встреч в листе «%s»: %d" % (ZOOM_TAB, len(zoom_meta)))
     stamp = time.strftime("%d.%m.%Y %H:%M")
 
