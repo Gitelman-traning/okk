@@ -11,6 +11,10 @@ on:
         description: 'OpenRouter model (empty = pick a free one automatically)'
         required: false
         default: ''
+      managers:
+        description: 'Only these managers, comma separated (empty = any)'
+        required: false
+        default: ''
 
 jobs:
   review:
@@ -32,3 +36,4 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           LIMIT: ${{ inputs.limit }}
           OKK_MODEL: ${{ inputs.model }}
+          MANAGERS: ${{ inputs.managers }}
