@@ -1,0 +1,32 @@
+name: OKK diarize
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'How many recordings to process'
+        required: false
+        default: '4'
+      managers:
+        description: 'Only these managers, comma separated (empty = any)'
+        required: false
+        default: ''
+
+jobs:
+  diarize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python diarize.py
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          DEEPGRAM_TOKEN: ${{ secrets.DEEPGRAM_TOKEN }}
+          LIMIT: ${{ inputs.limit }}
+          MANAGERS: ${{ inputs.managers }}
