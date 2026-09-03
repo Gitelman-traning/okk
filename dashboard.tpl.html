@@ -626,7 +626,7 @@ function openRow(i){
         +(s.good?'<dt class="p">Хорошо</dt><dd>'+esc(s.good)+'</dd>':"")
         +(s.bad?'<dt class="m">Плохо</dt><dd>'+esc(s.bad)+'</dd>':"")
         +(s.fix?'<dt class="f">Улучшить</dt><dd>'+esc(s.fix)+'</dd>':"")
-        +'</dl>'+(s.quote?'<div class="q">«'+esc(s.quote)+'»</div>':"")+'</div>';
+        +'</dl>'+(s.quote?'<div class="q">'+(s.at?'<b style="color:var(--gold)">⏱ '+esc(s.at)+'</b> ':'')+'«'+esc(s.quote)+'»</div>':"")+'</div>';
     }).join("")+'</div>';
   }
 
@@ -658,7 +658,7 @@ function openRow(i){
           +'<div style="display:flex;justify-content:space-between;gap:10px"><span class="k">'+(i+1)+'. '+esc(nm)+'</span>'
           +'<span class="v"><span class="'+(c.asked?"ok":"bad")+'">'+(c.asked?"спросил":"не спросил")+'</span>'
           +' · <span class="'+(c.present?"ok":"bad")+'">'+(c.present?"прозвучало":"нет")+'</span></span></div>'
-          +(c.quote?'<span style="font-size:12px;color:var(--faint)">«'+esc(c.quote)+'»</span>':"")+'</div>';
+          +(c.quote?'<span style="font-size:12px;color:var(--faint)">'+(c.at?'<b style="color:var(--gold)">⏱ '+esc(c.at)+'</b> ':'')+'«'+esc(c.quote)+'»</span>':"")+'</div>';
       }).join("")+'</div>';
   }
   function list(title,arr,cl){

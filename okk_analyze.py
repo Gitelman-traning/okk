@@ -418,6 +418,52 @@ def normalize_checklist(review):
     return review
 
 
+_NORM = re.compile(r"[^0-9a-zа-яё]+")
+
+
+def _norm_tokens(text):
+    return [w for w in _NORM.sub(" ", str(text or "").lower().replace("ё", "е")).split() if w]
+
+
+def _fmt(sec):
+    sec = int(sec)
+    return "%d:%02d" % (sec // 60, sec % 60)
+
+
+def locate_quotes(review, words):
+    """Проставляет каждой цитате разбора время в записи — поле "at" вида «мм:сс».
+
+    words — список слов Deepgram с полем start. Цитата ищется по первым словам
+    (до многоточия), окно сужается с 6 слов до 3, если точного совпадения нет.
+    Не нашли — поле остаётся пустым, это честнее, чем ближайшая догадка."""
+    if not words:
+        return review
+    seq = [(_norm_tokens(w.get("word", "")), float(w.get("start", 0))) for w in words]
+    toks = [(tk[0], st) for tk, st in seq if tk]
+
+    def find(quote):
+        head = re.split(r"…|\.\.\.", str(quote or ""))[0]
+        q = _norm_tokens(head)
+        if not q:
+            return ""
+        for n in (6, 5, 4, 3):
+            if len(q) < n:
+                continue
+            pat = q[:n]
+            for i in range(len(toks) - n + 1):
+                if all(toks[i + k][0] == pat[k] for k in range(n)):
+                    return _fmt(toks[i][1])
+        return ""
+
+    for c in review.get("checklist") or []:
+        if isinstance(c, dict) and c.get("quote"):
+            c["at"] = find(c["quote"])
+    for s in review.get("stages") or []:
+        if isinstance(s, dict) and s.get("quote"):
+            s["at"] = find(s["quote"])
+    return review
+
+
 def elements_count(review, key):
     """Сколько обязательных элементов отмечено моделью — «спросил» или «прозвучало»."""
     items = review.get("checklist") or []

@@ -11,6 +11,10 @@ on:
         description: 'Only these managers, comma separated (empty = any)'
         required: false
         default: ''
+      redo:
+        description: 'Recount already processed (1 = yes)'
+        required: false
+        default: ''
 
 jobs:
   diarize:
@@ -30,3 +34,4 @@ jobs:
           DEEPGRAM_TOKEN: ${{ secrets.DEEPGRAM_TOKEN }}
           LIMIT: ${{ inputs.limit }}
           MANAGERS: ${{ inputs.managers }}
+          REDO: ${{ inputs.redo }}

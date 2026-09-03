@@ -54,6 +54,8 @@ SELLER_WORDS = re.compile(
 
 COLUMNS = ["речь менеджера %", "длинный монолог", "реплик менеджер/клиент",
            "минут записи", "как определён менеджер"]
+# Пересчитать уже посчитанные встречи (например, чтобы добавить тайминги цитат)
+REDO = os.environ.get("REDO", "").strip().lower() in ("1", "true", "yes")
 
 
 def log(*a):
@@ -204,7 +206,7 @@ def main():
         row = dict(zip(hdr, raw + [""] * (len(hdr) - len(raw))))
         if not row.get("запись zoom", "").strip():
             continue
-        if row.get(COLUMNS[0], "").strip():       # уже посчитано
+        if row.get(COLUMNS[0], "").strip() and not REDO:   # уже посчитано
             continue
         if MANAGERS and not any(m in row.get("менеджер", "").lower() for m in MANAGERS):
             continue
@@ -222,7 +224,22 @@ def main():
             item = apify_audio(row.get("запись zoom", ""), row.get("код доступа", ""))
             path = download(item)
             log("[%s] распознаю с разделением говорящих..." % rid)
-            m = measure(transcribe(path))
+            dg = transcribe(path)
+            m = measure(dg)
+            # у разбора этой встречи уже есть цитаты — проставим им время в записи
+            try:
+                import okk_analyze as okk
+                if "json" in hdr and row.get("json"):
+                    review = json.loads(row["json"])
+                    alt = ((dg.get("results") or {}).get("channels") or [{}])[0].get("alternatives") or [{}]
+                    review = okk.locate_quotes(review, alt[0].get("words") or [])
+                    values.update(spreadsheetId=SHEET_ID,
+                                  range="'%s'!%s%d" % (OKK_TAB, letter(hdr.index("json")), rownum),
+                                  valueInputOption="RAW",
+                                  body={"values": [[json.dumps(review, ensure_ascii=False)[:48000]]]}).execute()
+                    log("[%s] тайминги цитат проставлены" % rid)
+            except Exception as e:
+                log("[%s] тайминги не проставлены: %s" % (rid, str(e)[:120]))
             values.update(spreadsheetId=SHEET_ID,
                           range="'%s'!%s%d" % (OKK_TAB, letter(first), rownum),
                           valueInputOption="RAW",

@@ -96,6 +96,7 @@ details[open].why summary::before{content:"▾ "}
 details.why p{margin:6px 0 0;color:var(--dim);line-height:1.5;max-width:60ch}
 details.why p.q{color:var(--faint);border-left:2px solid var(--line-2);padding-left:10px}
 details.why p.na{color:var(--faint);font-style:italic}
+.at{font-weight:600;color:var(--gold);font-variant-numeric:tabular-nums;margin-right:4px}
 .bars{display:flex;flex-direction:column;gap:8px}
 .brow{display:grid;grid-template-columns:150px 1fr 1fr;gap:10px;align-items:center;font-size:12.5px}
 .brow .nm{color:var(--dim)}
@@ -241,7 +242,7 @@ MANUAL.meetings.forEach(function(m){
         +' · <span class="'+(c.present?"yes":"no")+'">прозвучало: '+(c.present?"да":"нет")+'</span>'
         +'<details class="why"><summary>почему модель так решила</summary>'
         +(c.why?'<p>'+esc(c.why)+'</p>':'<p class="na">Объяснение не записано — разбор сделан до того, как оно стало обязательным.</p>')
-        +(c.quote?'<p class="q">«'+esc(c.quote)+'»</p>':'<p class="na">Цитаты нет — модель не нашла подтверждения в расшифровке.</p>')
+        +(c.quote?'<p class="q">'+(c.at?'<b class="at">⏱ '+esc(c.at)+'</b> ':'')+'«'+esc(c.quote)+'»</p>':'<p class="na">Цитаты нет — модель не нашла подтверждения в расшифровке.</p>')
         +'</details>';
       // человек ставил «да», если элемент был в диалоге — сравниваем с «прозвучало»
       flag = (!!c.present===!!h) ? '<span class="gap ok">совпало</span>' : '<span class="gap big">разошлось</span>';

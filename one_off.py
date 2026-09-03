@@ -63,6 +63,9 @@ def main():
         text[:okk.MAX_CHARS // 3] + "\n…\n" + text[-2 * okk.MAX_CHARS // 3:])
     review, model = okk.ask_model(models, headers, sent, metrics)
     review = okk.normalize_checklist(review)
+    review = okk.locate_quotes(review, alt[0].get("words") or [])
+    located = sum(1 for c in review.get("checklist", []) if c.get("at"))
+    log("таймингов у цитат чек-листа: %d из %d" % (located, len(review.get("checklist", []))))
 
     # строка в лист «ОКК» — как у обычного прогона, плюс замеры речи
     hdr = okk.ensure_tab(sheets)
