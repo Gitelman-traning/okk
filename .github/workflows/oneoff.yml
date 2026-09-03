@@ -30,6 +30,10 @@ on:
         description: 'Sheet tab to write into (empty = main)'
         required: false
         default: ''
+      reuse:
+        description: 'Reuse cached transcript of this client from a previous run (1 = yes)'
+        required: false
+        default: ''
 
 jobs:
   oneoff:
@@ -41,8 +45,24 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r requirements.txt
+      - name: Cache key
+        id: key
+        run: echo "name=transcript-$(printf '%s' "${{ inputs.client }}" | md5sum | cut -c1-12)" >> "$GITHUB_OUTPUT"
+      - name: Fetch cached transcript
+        if: inputs.reuse == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh api "repos/${{ github.repository }}/actions/artifacts?name=${{ steps.key.outputs.name }}&per_page=1" --jq '.artifacts[0].id')
+          if [ -n "$id" ] && [ "$id" != "null" ]; then
+            gh api "repos/${{ github.repository }}/actions/artifacts/$id/zip" > cache.zip
+            mkdir -p cache && unzip -o -q cache.zip -d cache && echo "cache found: artifact $id"
+          else
+            echo "no cached transcript, will transcribe"
+          fi
       - run: python one_off.py
         env:
+          REC_CACHE: cache/transcript.json
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           SHEET_ID: ${{ secrets.SHEET_ID }}
           CHECKLIST_JSON: ${{ secrets.CHECKLIST_JSON }}
@@ -57,3 +77,12 @@ jobs:
           REC_MODELS: ${{ inputs.models }}
           OKK_TAB: ${{ inputs.tab || 'ОКК' }}
           MAX_CHARS: ${{ inputs.models && '400000' || '' }}
+      - name: Keep transcript for next runs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.key.outputs.name }}
+          path: cache/transcript.json
+          if-no-files-found: ignore
+          retention-days: 90
+          overwrite: true

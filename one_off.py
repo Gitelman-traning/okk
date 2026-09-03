@@ -39,15 +39,32 @@ def main():
     sheets = diarize.sheets_client()
     values = sheets.values()
 
-    log("достаю запись из Zoom...")
-    item = diarize.apify_audio(URL, PASSCODE)
-    path = diarize.download(item)
-    try:
-        log("распознаю с разделением говорящих...")
-        dg = diarize.transcribe(path)
-    finally:
-        if os.path.exists(path):
-            os.remove(path)
+    # REC_CACHE — файл с ответом Deepgram. Есть — не скачиваем и не распознаём заново
+    # (перепрогон другой моделью стоит тогда только запрос к модели). Нет — создаём.
+    cache = os.environ.get("REC_CACHE", "").strip()
+    dg = None
+    if cache and os.path.exists(cache):
+        try:
+            dg = json.load(io.open(cache, encoding="utf-8"))
+            log("расшифровка взята из кэша: %s" % cache)
+        except ValueError:
+            dg = None
+    if dg is None:
+        log("достаю запись из Zoom...")
+        item = diarize.apify_audio(URL, PASSCODE)
+        path = diarize.download(item)
+        try:
+            log("распознаю с разделением говорящих...")
+            dg = diarize.transcribe(path)
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+        if cache:
+            d = os.path.dirname(cache)
+            if d and not os.path.isdir(d):
+                os.makedirs(d)
+            io.open(cache, "w", encoding="utf-8").write(json.dumps(dg, ensure_ascii=False))
+            log("расшифровка сохранена в кэш")
 
     speech = diarize.measure(dg)
     alt = ((dg.get("results") or {}).get("channels") or [{}])[0].get("alternatives") or [{}]
