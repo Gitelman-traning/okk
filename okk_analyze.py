@@ -446,13 +446,16 @@ def locate_quotes(review, words):
         q = _norm_tokens(head)
         if not q:
             return ""
+        # скользим окном по самой цитате: модель часто начинает её с «а», «ну», «вот»,
+        # которых в словах распознавания нет — совпадение ищем по любому фрагменту подряд
         for n in (6, 5, 4, 3):
             if len(q) < n:
                 continue
-            pat = q[:n]
-            for i in range(len(toks) - n + 1):
-                if all(toks[i + k][0] == pat[k] for k in range(n)):
-                    return _fmt(toks[i][1])
+            for j in range(len(q) - n + 1):
+                pat = q[j:j + n]
+                for i in range(len(toks) - n + 1):
+                    if all(toks[i + k][0] == pat[k] for k in range(n)):
+                        return _fmt(toks[i][1])
         return ""
 
     for c in review.get("checklist") or []:
