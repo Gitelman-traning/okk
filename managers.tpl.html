@@ -98,6 +98,7 @@ table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
 th,td{padding:9px 11px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line)}
 th{font-size:11.5px;font-weight:500;color:var(--faint)}
 tbody tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer}
 tbody tr:hover td{background:var(--zebra)}
 td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--dim)}
 td.sc{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
@@ -106,6 +107,78 @@ td.sc.s-ok{color:var(--ok)} td.sc.s-warn{color:var(--mid)} td.sc.s-bad{color:var
 .pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.warn{background:var(--mid-bg);color:var(--mid)} .pill.bad{background:var(--bad-bg);color:var(--bad)} .pill.idle{background:var(--soft);color:var(--faint)}
 .pill.ref{background:var(--gold-soft);color:var(--gold)}
 td a{color:var(--gold);text-decoration:none} td a:hover{text-decoration:underline}
+/* ---------- окно разбора ---------- */
+.modal{position:fixed;inset:0;z-index:20;display:none;background:rgba(30,26,20,.42);padding:24px}
+.modal.open{display:block}
+.sheet{background:var(--page);border-radius:18px;box-shadow:var(--shadow);max-width:1180px;margin:0 auto;
+  height:100%;display:flex;flex-direction:column;overflow:hidden}
+@media (max-width:720px){.modal{padding:0}.sheet{border-radius:0}}
+.sheet-head{flex:none;background:var(--card);padding:18px 24px;border-bottom:1px solid var(--line);
+  display:flex;gap:14px;align-items:flex-start}
+.sheet-head h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.sheet-head .meta{font-size:12.5px;color:var(--dim);margin-top:5px}
+.sheet-head .meta a{color:var(--gold);text-decoration:none}
+.headbtns{margin-left:auto;display:flex;gap:6px;flex:none}
+.headbtns button{background:var(--soft);border:0;border-radius:9px;color:var(--dim);
+  font-family:inherit;font-size:14px;line-height:1;padding:8px 11px;cursor:pointer}
+.headbtns button:hover:not(:disabled){color:var(--ink)}
+.headbtns button:disabled{opacity:.4;cursor:default}
+.sheet-body{flex:1;overflow:auto;padding:22px 24px 30px;display:grid;grid-template-columns:1.35fr 1fr;
+  gap:22px;align-items:start}
+@media (max-width:900px){.sheet-body{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.block{background:var(--card);border-radius:14px;padding:18px 20px}
+.modal h3{margin:0 0 10px;font-size:12.5px;font-weight:600;color:var(--dim)}
+.modal p{margin:0;font-size:14px;line-height:1.6}
+.callout{background:var(--bad-bg);border-radius:14px;padding:16px 18px;font-size:13.5px;color:var(--ink)}
+.callout b{display:block;font-size:12.5px;color:var(--bad);margin-bottom:5px;font-weight:600}
+.stage{border-top:1px solid var(--line);padding:14px 0}
+.stage:first-of-type{border-top:0;padding-top:0}
+.stage .top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.stage .top .nm{font-weight:600;font-size:14px;flex:1}
+.stage .top .sc{font-variant-numeric:tabular-nums;font-weight:600;padding:3px 10px;border-radius:8px;font-size:12.5px}
+.stage .top .sc.s-ok{background:var(--ok-bg);color:var(--ok)}
+.stage .top .sc.s-warn{background:var(--mid-bg);color:var(--mid)}
+.stage .top .sc.s-bad{background:var(--bad-bg);color:var(--bad)}
+.stage .top .sc.s-none{background:var(--soft);color:var(--faint)}
+.stage dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:13.5px}
+.stage dt{font-size:12px;font-weight:600;padding-top:2px;white-space:nowrap}
+.stage dt.p{color:var(--ok)} .stage dt.m{color:var(--bad)} .stage dt.f{color:var(--gold)}
+.stage dd{margin:0;color:var(--dim)}
+.stage .q{font-size:13px;color:var(--faint);background:var(--soft);border-radius:10px;
+  padding:10px 13px;margin-top:9px;line-height:1.5}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:7px 0;
+  border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--dim)} .kv .v{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.kv .v.bad{color:var(--bad)} .kv .v.ok{color:var(--ok)}
+ul.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13.5px}
+ul.list li{padding-left:15px;position:relative;line-height:1.5;color:var(--dim)}
+ul.list li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;
+  background:var(--gold-b)}
+ul.list.pain li::before{background:var(--mid-bar)}
+ul.list.obj li::before{background:var(--bad-bar)}
+
+/* ---------- вопрос по встрече ---------- */
+.ask{display:flex;flex-direction:column;gap:11px}
+.ask form{display:flex;gap:8px}
+.ask input{flex:1;font-family:inherit;font-size:14px;padding:10px 13px;border:1px solid var(--line-2);
+  border-radius:10px;background:var(--page);color:var(--ink);min-width:0}
+.ask>form>button{font-family:inherit;font-size:12.5px;font-weight:600;padding:10px 16px;border:0;
+  border-radius:10px;cursor:pointer;color:#2b2721;background:linear-gradient(135deg,var(--gold-a),var(--gold-b));flex:none}
+.ask button:disabled{opacity:.5;cursor:default}
+.ask .hints{display:flex;flex-wrap:wrap;gap:6px}
+.ask .hints button{background:var(--soft);border:0;border-radius:9px;color:var(--dim);
+  font-family:inherit;font-size:12px;padding:6px 11px;cursor:pointer}
+.ask .hints button:hover{color:var(--ink)}
+.qa{display:flex;flex-direction:column;gap:12px}
+.qa .q{font-weight:600;font-size:13.5px}
+.qa .a{font-size:13.5px;line-height:1.6;color:var(--dim);background:var(--soft);border-radius:10px;
+  padding:11px 13px;white-space:pre-wrap}
+.qa .a.err{background:var(--bad-bg);color:var(--bad)}
+.qa .who{font-size:11.5px;color:var(--faint);margin-top:4px}
+
+
 footer{padding:8px 24px 30px;font-size:12px;color:var(--faint)}
 </style>
 
@@ -170,6 +243,23 @@ footer{padding:8px 24px 30px;font-size:12px;color:var(--faint)}
 </div>
 </div>
 
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="d-title">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>
+        <h2 id="d-title">—</h2>
+        <div class="meta" id="d-meta">—</div>
+      </div>
+      <div class="headbtns">
+        <button type="button" id="d-prev" title="Предыдущая встреча (←)">←</button>
+        <button type="button" id="d-next" title="Следующая встреча (→)">→</button>
+        <button type="button" id="d-close" title="Закрыть (Esc)" aria-label="Закрыть разбор">✕</button>
+      </div>
+    </div>
+    <div class="sheet-body" id="d-body"></div>
+  </div>
+</div>
+
 <script>
 (function(){var KEY="okk-menu";function read(){try{return localStorage.getItem(KEY)}catch(e){return null}}
 function store(v){try{localStorage.setItem(KEY,v)}catch(e){}}
@@ -184,6 +274,11 @@ paint(read()||"auto");document.querySelector(".themer").addEventListener("click"
 
 var PAYLOAD = /*__DATA__*/;
 var DATA = PAYLOAD.items;
+
+var STAGE_NAMES = {contact:"Установление контакта", needs:"Выявление потребностей",
+  present:"Презентация", objections:"Отработка возражений", close:"Фиксация договорённостей"};
+var tbody=document.getElementById("rows");
+var view=[];
 var STAGES = ["Контакт","Потребности","Презентация","Возражения","Фиксация"];
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function nums(a){return a.filter(function(x){return typeof x==="number"})}
@@ -292,16 +387,166 @@ function render(name){
 
   /* таблица */
   document.getElementById("cnt").textContent=n+" встреч, от старых к новым";
-  document.getElementById("rows").innerHTML=list.slice().reverse().map(function(d){
-    var link = d.deal_id ? 'index.html?deal='+encodeURIComponent(d.deal_id) : 'index.html?client='+encodeURIComponent(d.client);
-    return '<tr><td class="num">'+esc(d.held||"—")+'</td><td>'+esc(d.client)+(isRef(d)?' <span class="pill ref">эталон</span>':"")+'</td><td>'+goalPill(d.achieved)+'</td>'
+  var ordered=list.slice().reverse();
+  view=ordered.map(function(d){return {i:DATA.indexOf(d)}});
+  document.getElementById("rows").innerHTML=ordered.map(function(d){
+    return '<tr data-i="'+DATA.indexOf(d)+'" tabindex="0"><td class="num">'+esc(d.held||"—")+'</td><td>'+esc(d.client)+(isRef(d)?' <span class="pill ref">эталон</span>':"")+'</td><td>'+goalPill(d.achieved)+'</td>'
       +'<td class="num">'+(d.prob==null?"—":d.prob+"%")+'</td>'
       +d.s.map(function(v){return '<td class="sc '+cls(v)+'">'+(v==null?"—":v)+'</td>'}).join("")
       +'<td class="num">'+(typeof d.speech==="number"?d.speech+"%":"—")+'</td><td class="num">'+d.komitet+'</td>'
       +'<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;color:var(--dim)">'+esc(d.next)+'</td>'
-      +'<td><a href="'+link+'">разбор →</a></td></tr>';
+      +'<td style="color:var(--gold);font-weight:600">разбор →</td></tr>';
   }).join("");
 }
 render(initial);
+
+var modal=document.getElementById("modal");
+var current=-1;
+
+function openRow(i){
+  var d=DATA[i], r=d.review||{};
+  current=i;
+  document.querySelectorAll("tbody tr").forEach(function(t){t.classList.remove("sel")});
+  var tr=tbody.querySelector('tr[data-i="'+i+'"]'); if(tr) tr.classList.add("sel");
+
+  document.getElementById("d-title").textContent=d.client||"Встреча";
+  document.getElementById("d-meta").innerHTML =
+    esc(d.held||"") + " · " + esc(d.mgr||"менеджер не указан")
+    + (d.amo?' · <a href="'+esc(d.amo)+'" target="_blank" rel="noopener">сделка в amoCRM</a>':"")
+    + (d.zoom?' · <a href="'+esc(d.zoom)+'" target="_blank" rel="noopener">запись встречи</a>':"")
+    + (d.passcode?' (код '+esc(d.passcode)+')':"")
+    + (d.doc?' · <a href="'+esc(d.doc)+'" target="_blank" rel="noopener">расшифровка</a>':"")
+    + (d.source?' · источник: '+esc(d.source):"")
+    + (d.turnover?' · оборот '+esc(d.turnover)+' млн':"");
+
+  // левая колонка: о чём была встреча и как менеджер её провёл
+  var left='<div class="block"><h3>Резюме встречи</h3><p>'+esc(d.summary)+'</p></div>';
+  if(d.why) left+='<div class="callout"><b>Почему цель не достигнута</b>'+esc(d.why)+'</div>';
+  var stages=(r.stages||[]);
+  if(stages.length){
+    left+='<div class="block"><h3>Этапы продажи</h3>'+stages.map(function(s){
+      var v=(typeof s.score==="number")?s.score:null;
+      return '<div class="stage"><div class="top"><span class="nm">'+esc(STAGE_NAMES[s.key]||s.key)
+        +'</span><span class="sc '+cls(v)+'">'+(v==null?"—":v)+'</span></div><dl>'
+        +(s.good?'<dt class="p">Хорошо</dt><dd>'+esc(s.good)+'</dd>':"")
+        +(s.bad?'<dt class="m">Плохо</dt><dd>'+esc(s.bad)+'</dd>':"")
+        +(s.fix?'<dt class="f">Улучшить</dt><dd>'+esc(s.fix)+'</dd>':"")
+        +'</dl>'+(s.quote?'<div class="q">«'+esc(s.quote)+'»</div>':"")+'</div>';
+    }).join("")+'</div>';
+  }
+
+  // правая колонка: результат, счётчики и что известно о клиенте
+  var right='<div class="block"><h3>Цель встречи</h3><p>'+esc(d.goal||"—")+'</p></div>'
+    +'<div class="block"><h3>Результат</h3>'
+    +'<div class="kv"><span class="k">Цель достигнута</span><span class="v">'+esc(d.achieved||"—")+'</span></div>'
+    +'<div class="kv"><span class="k">Вероятность сделки</span><span class="v">'+(d.prob==null?"—":d.prob+"%")+'</span></div>'
+    +'<div class="kv"><span class="k">ЛПР на встрече</span><span class="v">'+esc(d.dm||"—")+'</span></div>'
+    +'<div class="kv"><span class="k">Дата следующего шага</span><span class="v '+(d.next_date?"ok":"bad")+'">'
+    +(d.next_date?"назначена":"нет")+'</span></div></div>';
+  right+='<div class="block"><h3>Следующий шаг</h3><p>'+esc(d.next||"не зафиксирован")+'</p></div>';
+  right+='<div class="block"><h3>Обязательные элементы</h3>'
+    +'<div class="kv"><span class="k">«Комитет» упомянут</span><span class="v '+(d.komitet>=2?"ok":"bad")+'">'+d.komitet+' раз</span></div>'
+    +'<div class="kv"><span class="k">Комитет по всей встрече</span><span class="v '+(d.komitet_spread?"ok":"bad")+'">'+(d.komitet_spread?"да":"нет")+'</span></div>'
+    +'<div class="kv"><span class="k">Даты потока и дефицит</span><span class="v '+(d.scarcity?"ok":"bad")+'">'+(d.scarcity?"да":"нет")+'</span></div>'
+    +'<div class="kv"><span class="k">Запрещённая фраза</span><span class="v '+(d.banned?"bad":"ok")+'">'+(d.banned?"прозвучала":"чисто")+'</span></div>'
+    +'<div class="kv"><span class="k">Вопросов задано</span><span class="v">'+d.questions+'</span></div>'
+    +'<div class="kv"><span class="k">Слов в расшифровке</span><span class="v">'+d.words+'</span></div></div>';
+  function list(title,arr,cl){
+    if(!arr||!arr.length) return "";
+    return '<div class="block"><h3>'+title+'</h3><ul class="list '+cl+'">'
+      +arr.map(function(x){return "<li>"+esc(x)+"</li>"}).join("")+'</ul></div>';
+  }
+  right+=list("Факты о клиенте",r.facts,"")+list("Потребности и боли",r.pains,"pain")
+      +list("Возражения",r.objections,"obj");
+  if(r.notes) right+='<div class="block"><h3>Замечания модели</h3><p>'+esc(r.notes)+'</p></div>';
+
+  right+='<div class="block ask"><h3>Спросить по встрече</h3>'
+    +'<div class="hints">'
+    +['Что клиент сказал про бюджет?','Какие возражения прозвучали?',
+      'О чём договорились в конце?','Какие вопросы задал менеджер?']
+      .map(function(h){return '<button type="button" data-hint="'+esc(h)+'">'+esc(h)+'</button>'}).join("")
+    +'</div>'
+    +'<form id="ask-form"><input id="ask-input" placeholder="Ваш вопрос по этой встрече" '
+    +'autocomplete="off" maxlength="300"><button type="submit" id="ask-send">Спросить</button></form>'
+    +'<div class="qa" id="ask-log"></div></div>';
+
+  document.getElementById("d-body").innerHTML='<div class="col">'+left+'</div><div class="col">'+right+'</div>';
+  wireAsk(d);
+  document.getElementById("d-body").scrollTop=0;
+
+  // листаем в том порядке, в каком встречи идут в списке
+  var pos=view.findIndex(function(x){return x.i===i});
+  document.getElementById("d-prev").disabled = pos<=0;
+  document.getElementById("d-next").disabled = pos<0 || pos>=view.length-1;
+
+  modal.classList.add("open");
+  document.body.style.overflow="hidden";
+}
+
+function wireAsk(d){
+  var form=document.getElementById("ask-form"),
+      input=document.getElementById("ask-input"),
+      send=document.getElementById("ask-send"),
+      log=document.getElementById("ask-log");
+  if(!form) return;
+
+  document.querySelectorAll(".ask .hints button").forEach(function(b){
+    b.addEventListener("click",function(){ input.value=b.getAttribute("data-hint"); ask(); });
+  });
+  form.addEventListener("submit",function(e){ e.preventDefault(); ask(); });
+
+  function line(cls,text,who){
+    var box=document.createElement("div");
+    box.innerHTML='<div class="a '+cls+'">'+esc(text)+'</div>'+(who?'<div class="who">'+esc(who)+'</div>':"");
+    return box;
+  }
+
+  function ask(){
+    var q=input.value.trim();
+    if(!q) return;
+    input.value=""; send.disabled=true; send.textContent="Думаю…";
+    var block=document.createElement("div");
+    block.innerHTML='<div class="q">'+esc(q)+'</div>';
+    var waiting=line("","…","");
+    block.appendChild(waiting);
+    log.prepend(block);
+
+    fetch("/__ask",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({deal:d.deal_id,question:q})})
+      .then(function(r){return r.json()})
+      .then(function(res){
+        block.replaceChild(res.error ? line("err",res.error,"")
+                                     : line("",res.answer,res.model?("ответила "+res.model):""), waiting);
+      })
+      .catch(function(){ block.replaceChild(line("err","Не получилось спросить — проверьте связь.",""), waiting) })
+      .then(function(){ send.disabled=false; send.textContent="Спросить" });
+  }
+}
+
+function step(delta){
+  var pos=view.findIndex(function(x){return x.i===current});
+  var to=pos+delta;
+  if(pos>=0 && to>=0 && to<view.length) openRow(view[to].i);
+}
+function closeModal(){modal.classList.remove("open");document.body.style.overflow=""}
+
+document.getElementById("d-close").addEventListener("click",closeModal);
+document.getElementById("d-prev").addEventListener("click",function(){step(-1)});
+document.getElementById("d-next").addEventListener("click",function(){step(1)});
+modal.addEventListener("click",function(e){ if(e.target===modal) closeModal(); });
+document.addEventListener("keydown",function(e){
+  if(!modal.classList.contains("open")) return;
+  if(e.key==="Escape") closeModal();
+  if(e.key==="ArrowLeft") step(-1);
+  if(e.key==="ArrowRight") step(1);
+});
+tbody.addEventListener("click",function(e){
+  if(e.target.closest("a")) return;          // клик по ссылке — уходим по ней, окно не трогаем
+  var tr=e.target.closest("tr"); if(tr) openRow(+tr.getAttribute("data-i"));
+});
+tbody.addEventListener("keydown",function(e){
+  if(e.key!=="Enter"&&e.key!==" ")return;
+  var tr=e.target.closest("tr"); if(tr){e.preventDefault();openRow(+tr.getAttribute("data-i"))}
+});
 document.getElementById("foot").textContent="Засечка на полосах профиля — среднее по всему отделу ("+DATA.length+" встреч). Оценки этапов — модель "+PAYLOAD.model+", доля речи и счётчики — код по расшифровке.";
 </script>
