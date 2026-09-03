@@ -1,0 +1,307 @@
+<title>Менеджеры ОКК</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=TikTok+Sans:opsz,wght@12..36,300..900&display=swap">
+
+<style>
+:root{
+  --page:#faf8f4; --card:#ffffff; --soft:#f3f1ec; --zebra:#faf9f6;
+  --line:#f1eee8; --line-2:#e7e3da;
+  --ink:#2b2721; --dim:#7b766f; --faint:#a29d95;
+  --gold:#8a6f3d; --gold-soft:#efe7d6; --gold-a:#d8c9a8; --gold-b:#b59f76;
+  --ok:#38765a; --ok-bg:#e8f2ec; --mid:#8d6a17; --mid-bg:#fbf1de; --bad:#ad4636; --bad-bg:#fbe9e6;
+  --ok-bar:#6aa87f; --mid-bar:#e0b45a; --bad-bar:#d8735c; --grid:#efece6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#161718; --card:#1e2021; --soft:#232526; --zebra:#202223; --line:#282a2b; --line-2:#333637;
+    --ink:#eceae5; --dim:#9a958d; --faint:#75716a; --gold:#c9b487; --gold-soft:#2a2721;
+    --ok:#7cc396; --ok-bg:#1b2b23; --mid:#dcb463; --mid-bg:#2c2617; --bad:#e58975; --bad-bg:#2f1e1a; --grid:#2a2c2d;
+  }
+}
+:root[data-theme="dark"]{
+  --page:#161718; --card:#1e2021; --soft:#232526; --zebra:#202223; --line:#282a2b; --line-2:#333637;
+  --ink:#eceae5; --dim:#9a958d; --faint:#75716a; --gold:#c9b487; --gold-soft:#2a2721;
+  --ok:#7cc396; --ok-bg:#1b2b23; --mid:#dcb463; --mid-bg:#2c2617; --bad:#e58975; --bad-bg:#2f1e1a; --grid:#2a2c2d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Inter,"TikTok Sans",Arial,sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 24px;background:var(--card);border-bottom:1px solid var(--line)}
+.mark{width:30px;height:30px;flex:none;display:grid;place-items:center;border-radius:9px;background:var(--gold-soft);color:var(--gold);font-weight:700;font-size:12px}
+header h1{margin:0;font-size:15px;font-weight:600}
+header .sub{margin:0;font-size:12px;color:var(--dim)}
+header .spacer{flex:1}
+.stamp{font-size:12px;color:var(--faint)}
+.themer{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
+.themer button{font-family:inherit;font-size:12px;font-weight:500;background:none;border:0;color:var(--dim);padding:5px 11px;border-radius:7px;cursor:pointer}
+.themer button[aria-pressed="true"]{background:var(--card);color:var(--gold);font-weight:600}
+a{color:var(--gold)}
+:focus-visible{outline:2px solid var(--gold-b);outline-offset:2px}
+
+.layout{display:flex;min-height:100vh}
+.side{width:216px;flex:none;background:var(--card);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:4px;padding:16px 12px 14px;overflow:hidden;transition:width .16s ease;position:sticky;top:0;height:100vh}
+:root[data-menu="mini"] .side{width:66px}
+.side .brand{display:flex;align-items:center;gap:11px;padding:4px 8px 16px;min-width:0}
+.side .brand .txt b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap}
+.side .brand .txt span{display:block;font-size:11.5px;color:var(--faint);white-space:nowrap}
+.side nav{display:flex;flex-direction:column;gap:3px}
+.side nav a{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;color:var(--dim);text-decoration:none;font-size:13.5px;white-space:nowrap}
+.side nav a:hover{background:var(--soft);color:var(--ink)}
+.side nav a.on{background:var(--gold-soft);color:var(--gold);font-weight:600}
+.side nav a svg{flex:none;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6}
+.side .grow{flex:1}
+.side .collapse{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;background:none;border:0;color:var(--faint);font-family:inherit;font-size:12.5px;cursor:pointer;text-align:left;white-space:nowrap}
+.side .collapse:hover{background:var(--soft);color:var(--ink)}
+.side .collapse svg{flex:none;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;transition:transform .16s ease}
+:root[data-menu="mini"] .side .collapse svg{transform:rotate(180deg)}
+:root[data-menu="mini"] .side .txt,:root[data-menu="mini"] .side nav a span,:root[data-menu="mini"] .side .collapse span{display:none}
+:root[data-menu="mini"] .side nav a,:root[data-menu="mini"] .side .collapse{justify-content:center;padding:11px 0}
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+@media (max-width:760px){.side{width:66px}.side .txt,.side nav a span,.side .collapse span{display:none}.side nav a,.side .collapse{justify-content:center;padding:11px 0}}
+
+main{padding:22px 24px 70px;display:flex;flex-direction:column;gap:18px}
+.pick{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pick label{font-size:12.5px;color:var(--dim)}
+.pick select{font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line-2);border-radius:10px;padding:8px 12px}
+.pick .tag{font-size:12px;font-weight:600;padding:4px 11px;border-radius:9px;background:var(--gold-soft);color:var(--gold)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{border-radius:14px;padding:15px 17px;background:var(--soft);display:flex;flex-direction:column;gap:3px}
+.kpi:nth-child(3n+1){background:var(--ok-bg)} .kpi:nth-child(3n+2){background:var(--mid-bg)} .kpi:nth-child(3n){background:var(--bad-bg)}
+.kpi .k{font-size:12.5px;color:var(--dim)} .kpi .v{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.05;font-variant-numeric:tabular-nums} .kpi .n{font-size:11.5px;color:var(--faint)}
+.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+@media (max-width:1100px){.grid{grid-template-columns:1fr}}
+.widget{background:var(--card);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.widget.wide{grid-column:1 / -1}
+.wtitle{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.wtitle h2{margin:0;font-size:15px;font-weight:600}
+.wtitle span{font-size:12.5px;color:var(--faint)}
+.chart{width:100%;overflow:visible}
+text{font-family:Inter,Arial,sans-serif}
+.axis{fill:var(--faint);font-size:11px} .axis-name{fill:var(--dim);font-size:11.5px;font-weight:500}
+.gridline{stroke:var(--grid);stroke-width:1}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.legend .dash{width:14px;height:0;border-top:2px dashed var(--faint);border-radius:0}
+.takeaway{font-size:13px;color:var(--dim);background:var(--soft);border-radius:11px;padding:11px 14px}
+.takeaway b{color:var(--ink);font-weight:600}
+.srow{display:flex;align-items:center;gap:12px;font-size:13px}
+.srow .nm{width:190px;flex:none;color:var(--dim)}
+.srow .track{flex:1;height:8px;border-radius:5px;background:var(--soft);position:relative;overflow:hidden}
+.srow .fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+.srow .team{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--faint)}
+.srow .v{width:34px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.srow .d{width:46px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums}
+.d.up{color:var(--ok)} .d.down{color:var(--bad)}
+
+.tablebox{overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+th,td{padding:9px 11px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{font-size:11.5px;font-weight:500;color:var(--faint)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--zebra)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--dim)}
+td.sc{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+td.sc.s-ok{color:var(--ok)} td.sc.s-warn{color:var(--mid)} td.sc.s-bad{color:var(--bad)} td.sc.s-none{color:var(--faint)}
+.pill{display:inline-block;padding:3px 9px;border-radius:8px;font-size:11.5px;font-weight:500}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.warn{background:var(--mid-bg);color:var(--mid)} .pill.bad{background:var(--bad-bg);color:var(--bad)} .pill.idle{background:var(--soft);color:var(--faint)}
+.pill.ref{background:var(--gold-soft);color:var(--gold)}
+td a{color:var(--gold);text-decoration:none} td a:hover{text-decoration:underline}
+footer{padding:8px 24px 30px;font-size:12px;color:var(--faint)}
+</style>
+
+<div class="layout">
+<aside class="side">
+  <div class="brand"><div class="mark">12</div><div class="txt"><b>ОКК</b><span>разбор диагностик</span></div></div>
+  <nav>
+    <a href="./" title="Встречи"><svg viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h9" stroke-linecap="round"/></svg><span>Встречи</span></a>
+    <a href="managers.html" class="on" title="Менеджеры"><svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="3"/><circle cx="14" cy="8" r="2.4"/><path d="M2.5 16c.6-3 2.6-4.5 4.5-4.5S11 13 11.5 16M11.5 15.5c.4-2 1.4-3.2 2.7-3.2s2.4 1 3 3.2" stroke-linecap="round"/></svg><span>Менеджеры</span></a>
+    <a href="compare.html" title="Сверка"><svg viewBox="0 0 20 20"><path d="M4 4v12M16 4v12M4 8h4M12 8h4M4 12h4M12 12h4" stroke-linecap="round"/></svg><span>Сверка</span></a>
+    <a href="stats.html" title="Статистика"><svg viewBox="0 0 20 20"><path d="M4 16V9M10 16V4M16 16v-5" stroke-linecap="round"/></svg><span>Статистика</span></a>
+    <a href="charts.html" title="Дашборд"><svg viewBox="0 0 20 20"><path d="M3 3h6v6H3V3zM11 3h6v4h-6V3zM11 9h6v8h-6V9zM3 11h6v6H3v-6z" stroke-linejoin="round"/></svg><span>Дашборд</span></a>
+    <a href="guide.html" title="Гайд"><svg viewBox="0 0 20 20"><path d="M4 4h5a2 2 0 012 2v10a2 2 0 00-2-2H4V4zM16 4h-5a2 2 0 00-2 2v10a2 2 0 012-2h5V4z" stroke-linejoin="round"/></svg><span>Гайд</span></a>
+  </nav>
+  <div class="grow"></div>
+  <button type="button" class="collapse" id="menu-toggle"><svg viewBox="0 0 20 20"><path d="M12 5l-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Свернуть меню</span></button>
+</aside>
+<div class="pane">
+<header>
+  <div><h1>ОКК · Менеджеры</h1><p class="sub">Трек одного человека: профиль, динамика, все встречи</p></div>
+  <div class="spacer"></div>
+  <div class="themer" role="group" aria-label="Тема оформления">
+    <button type="button" data-set="auto" aria-pressed="true">Авто</button>
+    <button type="button" data-set="light" aria-pressed="false">Светлая</button>
+    <button type="button" data-set="dark" aria-pressed="false">Тёмная</button>
+  </div>
+  <div class="stamp" id="stamp">—</div>
+</header>
+<main>
+  <div class="pick">
+    <label for="mgr">Менеджер</label>
+    <select id="mgr"></select>
+    <span class="tag" id="role"></span>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <div class="grid">
+    <div class="widget">
+      <div class="wtitle"><h2>Профиль против отдела</h2><span>средний балл по этапам, засечка — отдел</span></div>
+      <div id="profile"></div>
+      <div class="takeaway" id="k-profile"></div>
+    </div>
+    <div class="widget">
+      <div class="wtitle"><h2>Доля речи по встречам</h2><span>сколько говорил менеджер, по таймингу</span></div>
+      <div id="speech"></div>
+      <div class="takeaway" id="k-speech"></div>
+    </div>
+    <div class="widget wide">
+      <div class="wtitle"><h2>Динамика</h2><span>фиксация договорённостей и средний балл по датам встреч</span></div>
+      <div id="trend"></div>
+      <div class="legend"><span><i style="background:var(--bad-bar)"></i>фиксация</span><span><i class="dash"></i>средний балл этапов</span><span><i style="background:var(--gold-soft)"></i>эталонная встреча</span></div>
+    </div>
+    <div class="widget wide">
+      <div class="wtitle"><h2>Все встречи</h2><span id="cnt"></span></div>
+      <div class="tablebox"><table>
+        <thead><tr><th>Когда</th><th>Клиент</th><th>Цель достигнута</th><th class="num">Вер.</th><th class="num">Контакт</th><th class="num">Потребн.</th><th class="num">Презент.</th><th class="num">Возраж.</th><th class="num">Фиксация</th><th class="num">Речь</th><th class="num">Комитет</th><th>Следующий шаг</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+    </div>
+  </div>
+  <footer id="foot">—</footer>
+</main>
+</div>
+</div>
+
+<script>
+(function(){var KEY="okk-menu";function read(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+function store(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+function paint(m){document.documentElement.setAttribute("data-menu",m)}
+paint(read()||"full");var b=document.getElementById("menu-toggle");
+if(b)b.addEventListener("click",function(){var n=document.documentElement.getAttribute("data-menu")==="mini"?"full":"mini";store(n);paint(n)});})();
+(function(){var KEY="okk-theme";function store(v){try{v?localStorage.setItem(KEY,v):localStorage.removeItem(KEY)}catch(e){}}
+function read(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+function paint(mode){if(mode==="light"||mode==="dark"){document.documentElement.setAttribute("data-theme",mode)}else{document.documentElement.removeAttribute("data-theme")}
+document.querySelectorAll(".themer button").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-set")===(mode||"auto")?"true":"false")})}
+paint(read()||"auto");document.querySelector(".themer").addEventListener("click",function(e){var b=e.target.closest("button[data-set]");if(!b)return;var m=b.getAttribute("data-set");store(m==="auto"?null:m);paint(m)});})();
+
+var PAYLOAD = /*__DATA__*/;
+var DATA = PAYLOAD.items;
+var STAGES = ["Контакт","Потребности","Презентация","Возражения","Фиксация"];
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function nums(a){return a.filter(function(x){return typeof x==="number"})}
+function avg(a){var v=nums(a);return v.length?Math.round(v.reduce(function(x,y){return x+y},0)/v.length):null}
+function cls(v){return v==null?"s-none":v>=75?"s-ok":v>=55?"s-warn":"s-bad"}
+function bar(v){return v==null?"var(--soft)":v>=75?"var(--ok-bar)":v>=55?"var(--mid-bar)":"var(--bad-bar)"}
+function dateKey(s){var m=/^(\d{1,2})[.](\d{1,2})[.](\d{2,4})/.exec(String(s||""));if(!m)return "";var y=m[3].length===2?"20"+m[3]:m[3];return y+("0"+m[2]).slice(-2)+("0"+m[1]).slice(-2)}
+function isRef(d){return /эталон/i.test(d.client||"")}
+function svg(w,h,inner){return '<svg class="chart" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMidYMid meet" role="img">'+inner+'</svg>'}
+function goalPill(g){var c=g==="Да"?"ok":g==="Частично"?"warn":g==="Нет"?"bad":"idle";return '<span class="pill '+c+'">'+esc(g||"—")+'</span>'}
+
+document.getElementById("stamp").textContent="прогон "+PAYLOAD.generated;
+var TEAM=[0,1,2,3,4].map(function(i){return avg(DATA.map(function(d){return d.s[i]}))});
+var BY={}; DATA.forEach(function(d){var m=d.mgr||"не указан";(BY[m]=BY[m]||[]).push(d)});
+var MGRS=Object.keys(BY).sort(function(a,b){return BY[b].length-BY[a].length});
+var sel=document.getElementById("mgr");
+MGRS.forEach(function(m){var o=document.createElement("option");o.value=m;o.textContent=m+" · "+BY[m].length;sel.appendChild(o)});
+var initial=MGRS.find(function(m){return /камилл/i.test(m)})||MGRS[0];
+var q=new URLSearchParams(location.search).get("mgr"); if(q&&BY[q]) initial=q;
+sel.value=initial;
+sel.addEventListener("change",function(){render(sel.value)});
+
+function render(name){
+  var list=BY[name].slice().sort(function(a,b){return dateKey(a.held)<dateKey(b.held)?-1:1});
+  var n=list.length;
+  var refs=list.filter(isRef).length;
+  document.getElementById("role").textContent = /камилл/i.test(name) ? "эталон отдела" : (/мурад/i.test(name)?"тестовый трек":"");
+
+  var done=list.filter(function(d){return d.achieved==="Да"}).length;
+  var prob=avg(list.map(function(d){return d.prob}));
+  var fix=avg(list.map(function(d){return d.s[4]}));
+  var sp=avg(list.map(function(d){return d.speech}));
+  var kom=list.filter(function(d){return d.komitet>=2}).length;
+  var mins=avg(list.map(function(d){return d.minutes}));
+  document.getElementById("kpis").innerHTML=[
+    ["Встреч разобрано",n,refs?refs+" эталонных":"в выборке"],
+    ["Цель достигнута",done+" из "+n,Math.round(100*done/n)+"%"],
+    ["Средняя вероятность",prob==null?"—":prob+"%","по оценке модели"],
+    ["Фиксация",fix==null?"—":fix,"отдел "+(TEAM[4]==null?"—":TEAM[4])],
+    ["Речь менеджера",sp==null?"—":sp+"%","по "+nums(list.map(function(d){return d.speech})).length+" встречам с замером"],
+    ["«Комитет» ≥ 2 раз",kom+" из "+n,Math.round(100*kom/n)+"% встреч"],
+    ["Длительность",mins==null?"—":mins+" мин","в среднем"]
+  ].map(function(c){return '<div class="kpi"><span class="k">'+c[0]+'</span><span class="v">'+c[1]+'</span><span class="n">'+c[2]+'</span></div>'}).join("");
+
+  /* профиль */
+  var prof="";var best=null,worstD=null;
+  STAGES.forEach(function(s,i){
+    var v=avg(list.map(function(d){return d.s[i]})); var t=TEAM[i];
+    var d=(v==null||t==null)?null:v-t;
+    if(d!=null){ if(best==null||d>best.d)best={s:s,d:d}; if(worstD==null||d<worstD.d)worstD={s:s,d:d}; }
+    prof+='<div class="srow"><span class="nm">'+s+'</span><div class="track"><div class="fill" style="width:'+(v||0)+'%;background:'+bar(v)+'"></div>'
+      +(t==null?"":'<div class="team" style="left:'+t+'%"></div>')+'</div><span class="v">'+(v==null?"—":v)+'</span>'
+      +'<span class="d '+(d==null?"":d>=0?"up":"down")+'">'+(d==null?"":(d>0?"+":"")+d)+'</span></div>';
+  });
+  document.getElementById("profile").innerHTML=prof;
+  document.getElementById("k-profile").innerHTML = best&&worstD ?
+    "Сильнее отдела всего на «"+best.s+"» ("+(best.d>0?"+":"")+best.d+"), слабее всего на «"+worstD.s+"» ("+(worstD.d>0?"+":"")+worstD.d+")." : "";
+
+  /* доля речи по встречам */
+  var withSp=list.filter(function(d){return typeof d.speech==="number"});
+  if(withSp.length){
+    var W=520,H=Math.max(120,withSp.length*26+30),L=96,R=46;
+    var iw=W-L-R,g="";
+    [50,65,80].forEach(function(v){g+='<line class="gridline" x1="'+(L+iw*v/100)+'" y1="4" x2="'+(L+iw*v/100)+'" y2="'+(H-22)+'"/><text class="axis" x="'+(L+iw*v/100)+'" y="'+(H-8)+'" text-anchor="middle">'+v+'%</text>'});
+    withSp.forEach(function(d,i){
+      var y=6+i*26, w=iw*d.speech/100;
+      var color=isRef(d)?"var(--gold-b)":(d.speech>=80?"var(--bad-bar)":d.speech>=65?"var(--mid-bar)":"var(--ok-bar)");
+      g+='<text class="axis" x="'+(L-8)+'" y="'+(y+13)+'" text-anchor="end">'+esc((d.held||"").slice(0,5))+'</text>'
+        +'<rect x="'+L+'" y="'+y+'" width="'+iw+'" height="18" rx="5" fill="var(--soft)"/>'
+        +'<rect x="'+L+'" y="'+y+'" width="'+w.toFixed(1)+'" height="18" rx="5" fill="'+color+'"><title>'+esc(d.client)+' · '+d.speech+'%, монолог '+esc(d.monolog)+'</title></rect>'
+        +'<text class="axis-name" x="'+(W-R+8)+'" y="'+(y+13)+'">'+d.speech+'%</text>';
+    });
+    document.getElementById("speech").innerHTML=svg(W,H,g);
+    var refSp=avg(withSp.filter(isRef).map(function(d){return d.speech}));
+    var regSp=avg(withSp.filter(function(d){return !isRef(d)}).map(function(d){return d.speech}));
+    document.getElementById("k-speech").innerHTML = (refSp!=null&&regSp!=null)
+      ? "На эталонных встречах менеджер говорит <b>"+refSp+"%</b>, на остальных — <b>"+regSp+"%</b>. Золотым отмечены эталонные."
+      : "Замер есть по "+withSp.length+" встречам из "+n+".";
+  } else {
+    document.getElementById("speech").innerHTML="";
+    document.getElementById("k-speech").textContent="Доля речи по этим встречам ещё не считалась.";
+  }
+
+  /* динамика */
+  (function(){
+    var W=1000,H=260,L=44,R=20,T=14,B=44,iw=W-L-R,ih=H-T-B;
+    var pts=list.filter(function(d){return d.held});
+    if(pts.length<2){document.getElementById("trend").innerHTML='<div class="takeaway">Мало встреч для динамики.</div>';return}
+    var x=function(i){return L+iw*(i/(pts.length-1))}, y=function(v){return T+ih*(1-v/100)};
+    var g="";
+    [0,25,50,75,100].forEach(function(v){g+='<line class="gridline" x1="'+L+'" y1="'+y(v)+'" x2="'+(W-R)+'" y2="'+y(v)+'"/><text class="axis" x="'+(L-8)+'" y="'+(y(v)+4)+'" text-anchor="end">'+v+'</text>'});
+    pts.forEach(function(d,i){
+      if(isRef(d)) g+='<rect x="'+(x(i)-14)+'" y="'+T+'" width="28" height="'+ih+'" fill="var(--gold-soft)" rx="6"/>';
+      g+='<text class="axis" x="'+x(i)+'" y="'+(H-14)+'" text-anchor="middle">'+esc((d.held||"").slice(0,5))+'</text>';
+    });
+    function line(get,color,dash){
+      var p=pts.map(function(d,i){var v=get(d);return typeof v==="number"?[x(i),y(v),v]:null}).filter(Boolean);
+      if(p.length<2)return "";
+      return '<path d="'+p.map(function(q,i){return (i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1)}).join(" ")+'" fill="none" stroke="'+color+'" stroke-width="2.2"'+(dash?' stroke-dasharray="6 5"':"")+' stroke-linejoin="round"/>'
+        +(dash?"":p.map(function(q){return '<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4" fill="'+color+'"><title>'+q[2]+'</title></circle>'}).join(""));
+    }
+    g+=line(function(d){return avg(d.s)},"var(--faint)",true);
+    g+=line(function(d){return d.s[4]},"var(--bad-bar)",false);
+    document.getElementById("trend").innerHTML=svg(W,H,g);
+  })();
+
+  /* таблица */
+  document.getElementById("cnt").textContent=n+" встреч, от старых к новым";
+  document.getElementById("rows").innerHTML=list.slice().reverse().map(function(d){
+    var link = d.deal_id ? 'index.html?deal='+encodeURIComponent(d.deal_id) : 'index.html?client='+encodeURIComponent(d.client);
+    return '<tr><td class="num">'+esc(d.held||"—")+'</td><td>'+esc(d.client)+(isRef(d)?' <span class="pill ref">эталон</span>':"")+'</td><td>'+goalPill(d.achieved)+'</td>'
+      +'<td class="num">'+(d.prob==null?"—":d.prob+"%")+'</td>'
+      +d.s.map(function(v){return '<td class="sc '+cls(v)+'">'+(v==null?"—":v)+'</td>'}).join("")
+      +'<td class="num">'+(typeof d.speech==="number"?d.speech+"%":"—")+'</td><td class="num">'+d.komitet+'</td>'
+      +'<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;color:var(--dim)">'+esc(d.next)+'</td>'
+      +'<td><a href="'+link+'">разбор →</a></td></tr>';
+  }).join("");
+}
+render(initial);
+document.getElementById("foot").textContent="Засечка на полосах профиля — среднее по всему отделу ("+DATA.length+" встреч). Оценки этапов — модель "+PAYLOAD.model+", доля речи и счётчики — код по расшифровке.";
+</script>

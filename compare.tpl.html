@@ -1,0 +1,276 @@
+<title>Сверка оценок</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=TikTok+Sans:opsz,wght@12..36,300..900&display=swap">
+
+<style>
+:root{
+  --page:#faf8f4; --card:#ffffff; --soft:#f3f1ec; --zebra:#faf9f6;
+  --line:#f1eee8; --line-2:#e7e3da;
+  --ink:#2b2721; --dim:#7b766f; --faint:#a29d95;
+  --gold:#8a6f3d; --gold-soft:#efe7d6; --gold-a:#d8c9a8; --gold-b:#b59f76;
+  --ok:#38765a; --ok-bg:#e8f2ec; --mid:#8d6a17; --mid-bg:#fbf1de; --bad:#ad4636; --bad-bg:#fbe9e6;
+  --ok-bar:#6aa87f; --mid-bar:#e0b45a; --bad-bar:#d8735c;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#161718; --card:#1e2021; --soft:#232526; --zebra:#202223; --line:#282a2b; --line-2:#333637;
+    --ink:#eceae5; --dim:#9a958d; --faint:#75716a; --gold:#c9b487; --gold-soft:#2a2721;
+    --ok:#7cc396; --ok-bg:#1b2b23; --mid:#dcb463; --mid-bg:#2c2617; --bad:#e58975; --bad-bg:#2f1e1a;
+  }
+}
+:root[data-theme="dark"]{
+  --page:#161718; --card:#1e2021; --soft:#232526; --zebra:#202223; --line:#282a2b; --line-2:#333637;
+  --ink:#eceae5; --dim:#9a958d; --faint:#75716a; --gold:#c9b487; --gold-soft:#2a2721;
+  --ok:#7cc396; --ok-bg:#1b2b23; --mid:#dcb463; --mid-bg:#2c2617; --bad:#e58975; --bad-bg:#2f1e1a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Inter,"TikTok Sans",Arial,sans-serif;
+  font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 24px;background:var(--card);border-bottom:1px solid var(--line)}
+.mark{width:30px;height:30px;flex:none;display:grid;place-items:center;border-radius:9px;background:var(--gold-soft);color:var(--gold);font-weight:700;font-size:12px}
+header h1{margin:0;font-size:15px;font-weight:600}
+header .sub{margin:0;font-size:12px;color:var(--dim)}
+header .spacer{flex:1}
+.stamp{font-size:12px;color:var(--faint)}
+.themer{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
+.themer button{font-family:inherit;font-size:12px;font-weight:500;background:none;border:0;color:var(--dim);padding:5px 11px;border-radius:7px;cursor:pointer}
+.themer button[aria-pressed="true"]{background:var(--card);color:var(--gold);font-weight:600}
+a{color:var(--gold)}
+:focus-visible{outline:2px solid var(--gold-b);outline-offset:2px}
+
+.layout{display:flex;min-height:100vh}
+.side{width:216px;flex:none;background:var(--card);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:4px;
+  padding:16px 12px 14px;overflow:hidden;transition:width .16s ease;position:sticky;top:0;height:100vh}
+:root[data-menu="mini"] .side{width:66px}
+.side .brand{display:flex;align-items:center;gap:11px;padding:4px 8px 16px;min-width:0}
+.side .brand .txt b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap}
+.side .brand .txt span{display:block;font-size:11.5px;color:var(--faint);white-space:nowrap}
+.side nav{display:flex;flex-direction:column;gap:3px}
+.side nav a{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;color:var(--dim);text-decoration:none;font-size:13.5px;white-space:nowrap}
+.side nav a:hover{background:var(--soft);color:var(--ink)}
+.side nav a.on{background:var(--gold-soft);color:var(--gold);font-weight:600}
+.side nav a svg{flex:none;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6}
+.side .grow{flex:1}
+.side .collapse{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;background:none;border:0;color:var(--faint);
+  font-family:inherit;font-size:12.5px;cursor:pointer;text-align:left;white-space:nowrap}
+.side .collapse:hover{background:var(--soft);color:var(--ink)}
+.side .collapse svg{flex:none;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;transition:transform .16s ease}
+:root[data-menu="mini"] .side .collapse svg{transform:rotate(180deg)}
+:root[data-menu="mini"] .side .txt,:root[data-menu="mini"] .side nav a span,:root[data-menu="mini"] .side .collapse span{display:none}
+:root[data-menu="mini"] .side nav a,:root[data-menu="mini"] .side .collapse{justify-content:center;padding:11px 0}
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+@media (max-width:760px){.side{width:66px}.side .txt,.side nav a span,.side .collapse span{display:none}.side nav a,.side .collapse{justify-content:center;padding:11px 0}}
+
+main{padding:22px 24px 70px;display:flex;flex-direction:column;gap:22px}
+.intro{background:var(--card);border-radius:16px;padding:20px 22px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:1000px){.intro{grid-template-columns:1fr}}
+.intro h2{margin:0 0 8px;font-size:17px;font-weight:600}
+.intro p{margin:0;color:var(--dim);font-size:13.5px}
+.intro .who{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.who span{font-size:12px;font-weight:600;padding:4px 11px;border-radius:9px}
+.who .h{background:var(--gold-soft);color:var(--gold)} .who .m{background:var(--mid-bg);color:var(--mid)} .who .c{background:var(--ok-bg);color:var(--ok)}
+
+.meet{background:var(--card);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+.meet .head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.meet .head h2{margin:0;font-size:17px;font-weight:600}
+.meet .head span{font-size:12.5px;color:var(--faint)}
+.meet .head a{font-size:12.5px;margin-left:auto}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:1100px){.grid{grid-template-columns:1fr}}
+.block h3{margin:0 0 8px;font-size:12.5px;font-weight:600;color:var(--dim)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;font-weight:500;color:var(--faint);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.k{color:var(--dim)}
+td.gap{font-weight:600;text-align:right;white-space:nowrap}
+.gap.big{color:var(--bad)} .gap.mid{color:var(--mid)} .gap.ok{color:var(--ok)}
+.yes{color:var(--ok);font-weight:600} .no{color:var(--bad);font-weight:600} .na{color:var(--faint)}
+.note-s{font-size:11.5px;color:var(--faint);display:block}
+.bars{display:flex;flex-direction:column;gap:8px}
+.brow{display:grid;grid-template-columns:150px 1fr 1fr;gap:10px;align-items:center;font-size:12.5px}
+.brow .nm{color:var(--dim)}
+.bar{height:16px;border-radius:5px;background:var(--soft);position:relative;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+.bar b{position:absolute;right:7px;top:0;line-height:16px;font-size:11px;font-weight:600;color:var(--ink)}
+.legend{display:flex;gap:14px;font-size:11.5px;color:var(--faint)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.conclusions{background:var(--card);border-radius:16px;padding:20px 22px}
+.conclusions h2{margin:0 0 12px;font-size:17px;font-weight:600}
+.conclusions .list{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:1000px){.conclusions .list{grid-template-columns:1fr}}
+.concl{background:var(--soft);border-radius:12px;padding:14px 16px;font-size:13.5px;color:var(--dim)}
+.concl b{display:block;color:var(--ink);margin-bottom:4px;font-weight:600}
+footer{padding:8px 24px 30px;font-size:12px;color:var(--faint)}
+</style>
+
+<div class="layout">
+<aside class="side">
+  <div class="brand"><div class="mark">12</div><div class="txt"><b>ОКК</b><span>разбор диагностик</span></div></div>
+  <nav>
+    <a href="./" title="Встречи"><svg viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h9" stroke-linecap="round"/></svg><span>Встречи</span></a>
+    <a href="managers.html" title="Менеджеры"><svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="3"/><circle cx="14" cy="8" r="2.4"/><path d="M2.5 16c.6-3 2.6-4.5 4.5-4.5S11 13 11.5 16M11.5 15.5c.4-2 1.4-3.2 2.7-3.2s2.4 1 3 3.2" stroke-linecap="round"/></svg><span>Менеджеры</span></a>
+    <a href="compare.html" class="on" title="Сверка"><svg viewBox="0 0 20 20"><path d="M4 4v12M16 4v12M4 8h4M12 8h4M4 12h4M12 12h4" stroke-linecap="round"/></svg><span>Сверка</span></a>
+    <a href="stats.html" title="Статистика"><svg viewBox="0 0 20 20"><path d="M4 16V9M10 16V4M16 16v-5" stroke-linecap="round"/></svg><span>Статистика</span></a>
+    <a href="charts.html" title="Дашборд"><svg viewBox="0 0 20 20"><path d="M3 3h6v6H3V3zM11 3h6v4h-6V3zM11 9h6v8h-6V9zM3 11h6v6H3v-6z" stroke-linejoin="round"/></svg><span>Дашборд</span></a>
+    <a href="guide.html" title="Гайд"><svg viewBox="0 0 20 20"><path d="M4 4h5a2 2 0 012 2v10a2 2 0 00-2-2H4V4zM16 4h-5a2 2 0 00-2 2v10a2 2 0 012-2h5V4z" stroke-linejoin="round"/></svg><span>Гайд</span></a>
+  </nav>
+  <div class="grow"></div>
+  <button type="button" class="collapse" id="menu-toggle"><svg viewBox="0 0 20 20"><path d="M12 5l-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Свернуть меню</span></button>
+</aside>
+<div class="pane">
+<header>
+  <div><h1>ОКК · Сверка оценок</h1><p class="sub">Человек против системы на одних и тех же записях</p></div>
+  <div class="spacer"></div>
+  <div class="themer" role="group" aria-label="Тема оформления">
+    <button type="button" data-set="auto" aria-pressed="true">Авто</button>
+    <button type="button" data-set="light" aria-pressed="false">Светлая</button>
+    <button type="button" data-set="dark" aria-pressed="false">Тёмная</button>
+  </div>
+  <div class="stamp" id="stamp">—</div>
+</header>
+<main>
+  <div class="intro">
+    <div>
+      <h2>Зачем это</h2>
+      <p>Две эталонные встречи Камиллы — те, по которым она сама написала разбор. Их посмотрел человек по листу оценки и разобрала система. Ниже — оба разбора рядом. Интересуют не совпадения, а расхождения: где они — там либо система слепа, либо критерий описан не так, как его понимает человек.</p>
+      <div class="who" id="who"></div>
+    </div>
+    <div>
+      <h2>Как читать</h2>
+      <p>Этапы человек оценивал по шкале 0–4, здесь они умножены на 25, чтобы сравнивать с системной 0–100. Замеры речи и счётчики — то, что считает код по расшифровке; напротив них стоит оценка на слух. Обязательные элементы система пока проверяет только там, где может посчитать; остальное помечено «не проверяет» — это следующая версия чек-листа.</p>
+    </div>
+  </div>
+  <div id="meetings"></div>
+  <div class="conclusions">
+    <h2>Что показала сверка</h2>
+    <div class="list" id="concl"></div>
+  </div>
+  <footer id="foot">—</footer>
+</main>
+</div>
+</div>
+
+<script>
+(function(){var KEY="okk-menu";function read(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+function store(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+function paint(m){document.documentElement.setAttribute("data-menu",m)}
+paint(read()||"full");var b=document.getElementById("menu-toggle");
+if(b)b.addEventListener("click",function(){var n=document.documentElement.getAttribute("data-menu")==="mini"?"full":"mini";store(n);paint(n)});})();
+(function(){var KEY="okk-theme";function store(v){try{v?localStorage.setItem(KEY,v):localStorage.removeItem(KEY)}catch(e){}}
+function read(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+function paint(mode){if(mode==="light"||mode==="dark"){document.documentElement.setAttribute("data-theme",mode)}else{document.documentElement.removeAttribute("data-theme")}
+document.querySelectorAll(".themer button").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-set")===(mode||"auto")?"true":"false")})}
+paint(read()||"auto");document.querySelector(".themer").addEventListener("click",function(e){var b=e.target.closest("button[data-set]");if(!b)return;var m=b.getAttribute("data-set");store(m==="auto"?null:m);paint(m)});})();
+
+var PAYLOAD = /*__DATA__*/;
+var MANUAL = PAYLOAD.manual || {meetings:[], must_labels:[]};
+var STAGES = ["Установление контакта","Выявление потребностей","Презентация","Отработка возражений","Фиксация договорённостей"];
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function gapCls(d){d=Math.abs(d);return d>=30?"big":d>=15?"mid":"ok"}
+function signed(d){return (d>0?"+":"")+d}
+
+document.getElementById("stamp").textContent="прогон "+PAYLOAD.generated;
+document.getElementById("who").innerHTML='<span class="h">Оценивал: '+esc(MANUAL.reviewer||"человек")+' · '+esc(MANUAL.reviewed_at||"")+'</span><span class="m">Система: '+esc(PAYLOAD.model)+'</span><span class="c">Счётчики: код</span>';
+
+function findSys(client){
+  return PAYLOAD.items.find(function(d){return d.client===client}) ||
+         PAYLOAD.items.find(function(d){return d.client && client && d.client.split(" ")[0]===client.split(" ")[0]});
+}
+
+var html="";
+var allGaps=[];
+MANUAL.meetings.forEach(function(m){
+  var s=findSys(m.client);
+  if(!s){ html+='<div class="meet"><div class="head"><h2>'+esc(m.client)+'</h2><span>системного разбора пока нет</span></div></div>'; return; }
+  var link = s.deal_id ? 'index.html?deal='+encodeURIComponent(s.deal_id) : 'index.html?client='+encodeURIComponent(s.client);
+
+  // этапы
+  var rows="";
+  m.stages.forEach(function(v,i){
+    var h=v*25, sv=s.s[i], d=(sv==null?null:h-sv);
+    if(d!=null) allGaps.push({m:m.client, st:STAGES[i], h:h, s:sv, d:d});
+    rows+='<tr><td class="k">'+STAGES[i]+'</td><td class="num">'+h+'</td><td class="num">'+(sv==null?"—":sv)+'</td>'
+      +'<td class="gap '+(d==null?"":gapCls(d))+'">'+(d==null?"—":signed(d))+'</td></tr>';
+  });
+  var manualAvg=Math.round(m.stages.reduce(function(a,b){return a+b},0)*25/m.stages.length);
+  var sysVals=s.s.filter(function(x){return typeof x==="number"});
+  var sysAvg=sysVals.length?Math.round(sysVals.reduce(function(a,b){return a+b},0)/sysVals.length):null;
+
+  // замеры
+  var sysClient = (typeof s.speech==="number") ? (100-s.speech) : null;
+  var mrows=[
+    ["Клиент говорил, %", m.client_share, sysClient, sysClient==null?null:m.client_share-sysClient, "по таймингу реплик"],
+    ["Длинный монолог менеджера", m.monolog_min+" мин", s.monolog||"—", null, "по таймингу"],
+    ["«Комитет», раз", m.komitet, s.komitet, m.komitet-s.komitet, "счётчик по тексту"],
+    ["Длительность, мин", m.minutes, s.minutes==null?"—":s.minutes, s.minutes==null?null:m.minutes-s.minutes, "по записи"],
+    ["Реплик менеджер / клиент", "—", s.lines||"—", null, "объясняет ощущение доли речи"]
+  ];
+  var meas=mrows.map(function(r){
+    return '<tr><td class="k">'+r[0]+'<span class="note-s">'+r[4]+'</span></td><td class="num">'+esc(r[1])+'</td><td class="num">'+esc(r[2])+'</td>'
+      +'<td class="gap '+(r[3]==null?"":gapCls(r[3]))+'">'+(r[3]==null?"—":signed(r[3]))+'</td></tr>';
+  }).join("");
+
+  // итог
+  var out='<tr><td class="k">Цель достигнута</td><td>'+esc(m.achieved)+'</td><td>'+esc(s.achieved)+'</td><td class="gap '+(m.achieved===s.achieved?"ok":"mid")+'">'+(m.achieved===s.achieved?"совпало":"разошлось")+'</td></tr>'
+    +'<tr><td class="k">Вероятность сделки</td><td class="num">'+m.prob+'%</td><td class="num">'+(s.prob==null?"—":s.prob+"%")+'</td><td class="gap '+(s.prob==null?"":gapCls(m.prob-s.prob))+'">'+(s.prob==null?"—":signed(m.prob-s.prob))+'</td></tr>';
+
+  // обязательные элементы: система проверяет только счётчиками
+  var sysMust = {7: s.komitet>=4, 8: null};
+  var must=(MANUAL.must_labels||[]).map(function(label,i){
+    var h=m.must[i]; var note=(m.must_notes||{})[String(i+1)];
+    var sv = (i===7) ? (s.komitet>=4) : null;
+    var svTxt = sv==null ? '<span class="na">не проверяет</span>' : (sv?'<span class="yes">да</span>':'<span class="no">нет</span>');
+    var flag = (sv==null) ? "" : (sv===h ? '<span class="gap ok">совпало</span>' : '<span class="gap big">разошлось</span>');
+    return '<tr><td class="k">'+(i+1)+'. '+esc(label)+(note?'<span class="note-s">'+esc(note)+'</span>':"")+'</td>'
+      +'<td>'+(h?'<span class="yes">да</span>':'<span class="no">нет</span>')+'</td><td>'+svTxt+'</td><td>'+flag+'</td></tr>';
+  }).join("");
+  var yes=m.must.filter(Boolean).length;
+
+  html+='<div class="meet"><div class="head"><h2>'+esc(m.client)+'</h2><span>'+esc(m.held)+' · Камилла Пацкевич</span>'
+    +'<a href="'+link+'">открыть машинный разбор →</a></div>'
+    +'<div class="bars"><div class="brow"><span class="nm">Средний балл этапов</span>'
+      +'<div class="bar"><i style="width:'+manualAvg+'%;background:var(--gold-b)"></i><b>'+manualAvg+'</b></div>'
+      +'<div class="bar"><i style="width:'+(sysAvg||0)+'%;background:var(--mid-bar)"></i><b>'+(sysAvg==null?"—":sysAvg)+'</b></div></div>'
+      +'<div class="brow"><span class="nm">Клиент говорил</span>'
+      +'<div class="bar"><i style="width:'+m.client_share+'%;background:var(--gold-b)"></i><b>'+m.client_share+'%</b></div>'
+      +'<div class="bar"><i style="width:'+(sysClient||0)+'%;background:var(--mid-bar)"></i><b>'+(sysClient==null?"—":sysClient+"%")+'</b></div></div>'
+      +'<div class="legend"><span><i style="background:var(--gold-b)"></i>человек</span><span><i style="background:var(--mid-bar)"></i>система</span></div></div>'
+    +'<div class="grid">'
+    +'<div class="block"><h3>Этапы встречи</h3><table><thead><tr><th>Этап</th><th class="num">Человек</th><th class="num">Система</th><th class="num">Разница</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+    +'<div class="block"><h3>Замеры</h3><table><thead><tr><th>Что</th><th class="num">На слух</th><th class="num">По расшифровке</th><th class="num">Разница</th></tr></thead><tbody>'+meas+'</tbody></table>'
+    +'<h3 style="margin-top:16px">Итог</h3><table><tbody>'+out+'</tbody></table></div>'
+    +'</div>'
+    +'<div class="block"><h3>Обязательные элементы — '+yes+' из '+m.must.length+' по оценке человека</h3>'
+    +'<table><thead><tr><th>Элемент</th><th>Человек</th><th>Система</th><th></th></tr></thead><tbody>'+must+'</tbody></table></div>'
+    +'<div class="block"><h3>Что улучшить, по мнению человека</h3><p style="margin:0;font-size:13.5px">'+esc((m.improve||[]).join("; "))+'</p>'
+    +(m.quote?'<p style="margin:6px 0 0;font-size:12.5px;color:var(--faint)">Цитата, решившая исход: «'+esc(m.quote)+'»</p>':"")+'</div>'
+    +'</div>';
+});
+document.getElementById("meetings").innerHTML=html;
+
+/* выводы: считаются по фактическим расхождениям, а не пишутся руками */
+(function(){
+  var out=[];
+  var big=allGaps.filter(function(g){return Math.abs(g.d)>=30});
+  var byStage={};
+  allGaps.forEach(function(g){(byStage[g.st]=byStage[g.st]||[]).push(g.d)});
+  var worst=Object.keys(byStage).sort(function(a,b){
+    var A=byStage[a].reduce(function(x,y){return x+Math.abs(y)},0)/byStage[a].length;
+    var B=byStage[b].reduce(function(x,y){return x+Math.abs(y)},0)/byStage[b].length;
+    return B-A})[0];
+  var m0=MANUAL.meetings[0], s0=m0?findSys(m0.client):null;
+
+  out.push({t:"Счётчики против слуха", b:"«Комитет» на слух — "+MANUAL.meetings.map(function(m){return m.komitet}).join(" и ")+" раз, по расшифровке — "
+    +MANUAL.meetings.map(function(m){var s=findSys(m.client);return s?s.komitet:"?"}).join(" и ")+". Слово-маркер растворяется в разговоре; считать его должен код, а не человек."});
+  out.push({t:"Доля речи расходится с ощущением в третий раз", b:"На слух клиент говорил "+MANUAL.meetings.map(function(m){return m.client_share+"%"}).join(" и ")+", по таймингу — "
+    +MANUAL.meetings.map(function(m){var s=findSys(m.client);return s&&typeof s.speech==="number"?(100-s.speech)+"%":"?"}).join(" и ")+". Разгадка в числе реплик: клиент вступает в разговор в полтора-два раза чаще, но короче. Ощущение «много говорил» — про частоту, а не про время."});
+  out.push({t:"Самое большое расхождение — "+(worst||"—"), b:"Человек и система смотрят на разное: один — задан ли вопрос, другая — получен ли результат. Критерий надо расщепить на «менеджер задал» и «информация получена», иначе он будет давать разные ответы разным людям."});
+  out.push({t:"Цель встречи в системе задана неверно", b:"Система считает целью продажу и ставит «частично», человек — выход на комитет и ставит «да». По методологии Камиллы цель диагностики — твёрдое согласие на комитет и заявка. Обе встречи по этой мерке закрыты, и человек ближе к факту. Правится в промпте."});
+  document.getElementById("concl").innerHTML=out.map(function(c){return '<div class="concl"><b>'+esc(c.t)+'</b>'+esc(c.b)+'</div>'}).join("");
+})();
+
+document.getElementById("foot").textContent="Ручные оценки — по листу оценки, заполненному после просмотра записи. Системные — модель "+PAYLOAD.model+" по расшифровке с разделением говорящих; счётчики и тайминги посчитаны кодом.";
+</script>

@@ -28,6 +28,10 @@ TPL = os.environ.get("TPL", "dashboard.tpl.html")
 TPL_STATS = os.environ.get("TPL_STATS", "stats.tpl.html")
 TPL_GUIDE = os.environ.get("TPL_GUIDE", "guide.tpl.html")
 TPL_CHARTS = os.environ.get("TPL_CHARTS", "charts.tpl.html")
+TPL_MANAGERS = os.environ.get("TPL_MANAGERS", "managers.tpl.html")
+TPL_COMPARE = os.environ.get("TPL_COMPARE", "compare.tpl.html")
+# ручные оценки для сверки лежат в приватной папке, не в репозитории
+MANUAL = os.environ.get("MANUAL_SCORES", os.path.join("..", "okk-docs", "manual-scores.json"))
 OUT = os.environ.get("OUT", os.path.join("..", "okk-docs", "dashboard.html"))
 OUT_STATS = os.environ.get("OUT_STATS", "")   # пусто — кладём рядом с OUT как stats.html
 
@@ -117,10 +121,17 @@ def main():
             "turnover": clean(r.get("оборот")),
             "zoom": clean(r.get("запись zoom")),
             "passcode": clean(r.get("код доступа")),
+            "speech": num(r.get("речь менеджера %")),
+            "monolog": clean(r.get("длинный монолог")),
+            "lines": clean(r.get("реплик менеджер/клиент")),
+            "minutes": num(r.get("минут записи")),
             "review": review,
         })
 
-    payload = {"generated": generated, "model": model, "items": items}
+    manual = {}
+    if os.path.exists(MANUAL):
+        manual = json.loads(io.open(MANUAL, encoding="utf-8").read())
+    payload = {"generated": generated, "model": model, "items": items, "manual": manual}
     tpl = io.open(TPL, encoding="utf-8").read()
     data = json.dumps(payload, ensure_ascii=False)
 
@@ -136,6 +147,12 @@ def main():
     charts_out = os.path.join(out_dir, "charts.html")
     charts_tpl = io.open(TPL_CHARTS, encoding="utf-8").read()
     io.open(charts_out, "w", encoding="utf-8").write(charts_tpl.replace("/*__DATA__*/", data))
+
+    for tpl_name, fname in ((TPL_MANAGERS, "managers.html"), (TPL_COMPARE, "compare.html")):
+        if os.path.exists(tpl_name):
+            page_tpl = io.open(tpl_name, encoding="utf-8").read()
+            io.open(os.path.join(out_dir, fname), "w", encoding="utf-8").write(
+                page_tpl.replace("/*__DATA__*/", data))
 
     guide_out = os.path.join(out_dir, "guide.html")
     guide_tpl = io.open(TPL_GUIDE, encoding="utf-8").read()
