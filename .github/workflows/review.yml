@@ -15,6 +15,10 @@ on:
         description: 'Only these managers, comma separated (empty = any)'
         required: false
         default: ''
+      redo:
+        description: 'Re-review meetings already in the sheet (1 = yes)'
+        required: false
+        default: ''
 
 jobs:
   review:
@@ -37,3 +41,4 @@ jobs:
           LIMIT: ${{ inputs.limit }}
           OKK_MODEL: ${{ inputs.model }}
           MANAGERS: ${{ inputs.managers }}
+          REDO: ${{ inputs.redo }}

@@ -85,10 +85,13 @@ def load_checklist():
             "нет чек-листа: задай секрет CHECKLIST_JSON или положи checklist.local.json")
     cfg = json.loads(raw)
     return (cfg.get("context", ""), cfg.get("must_say", []),
-            cfg.get("must_not_say", []), cfg.get("norms", {}))
+            cfg.get("must_not_say", []), cfg.get("norms", {}), cfg.get("elements", []))
 
 
-CONTEXT, MUST_SAY, MUST_NOT_SAY, NORMS = load_checklist()
+CONTEXT, MUST_SAY, MUST_NOT_SAY, NORMS, ELEMENTS = load_checklist()
+
+# Перезаписывать уже разобранные встречи (после смены чек-листа), а не пропускать их.
+REDO = os.environ.get("REDO", "").strip().lower() in ("1", "true", "yes")
 
 STAGES = [
     ("contact", "Установление контакта"),
@@ -112,6 +115,14 @@ SYSTEM_PROMPT = """Ты — методист отдела контроля ка�
 4. Реплики не размечены по говорящим. Определяй по смыслу, кто менеджер, а кто клиент.
    Если определить нельзя — так и пиши в поле notes.
 5. Отвечай ТОЛЬКО валидным JSON по схеме, без markdown-обёртки и пояснений.
+6. Для каждого ОБЯЗАТЕЛЬНОГО ЭЛЕМЕНТА (список ниже) отвечай двумя признаками:
+   "asked" — менеджер сам спросил или сам проговорил это;
+   "present" — тема в итоге прозвучала в диалоге (любой стороной, в том числе клиент рассказал
+   сам, не дожидаясь вопроса). "present" не может быть false, если "asked" true.
+   К каждому элементу — короткая цитата из расшифровки, подтверждающая ответ; нет цитаты — оба false.
+
+ОБЯЗАТЕЛЬНЫЕ ЭЛЕМЕНТЫ
+""" + "\n".join("- %s — %s. %s" % (e["id"], e["name"], e.get("hint", "")) for e in ELEMENTS) + """
 
 СХЕМА
 {
@@ -133,6 +144,10 @@ SYSTEM_PROMPT = """Ты — методист отдела контроля ка�
     {"key": "present",    "score": 0-100 или null, "good": "", "bad": "", "fix": "", "quote": ""},
     {"key": "objections", "score": 0-100 или null, "good": "", "bad": "", "fix": "", "quote": ""},
     {"key": "close",      "score": 0-100 или null, "good": "", "bad": "", "fix": "", "quote": ""}
+  ],
+  "checklist": [
+    {"id": "<id элемента из списка>", "asked": true|false, "present": true|false, "quote": ""}
+    // по одному объекту на КАЖДЫЙ элемент из списка, в том же порядке
   ],
   "notes": "что помешало разобрать встречу, если мешало"
 }"""
@@ -345,6 +360,7 @@ OKK_HEADERS = ["дата разбора", "ID сделки", "клиент", "с
                "контакт", "потребности", "презентация", "возражения", "фиксация",
                "комитет (раз)", "комитет по трети", "даты и ограниченность", "запрет: каждый месяц",
                "вопросов", "слов", "резюме", "модель", "json",
+               "элементы: спросил", "элементы: прозвучало",
                "менеджер", "дата встречи", "источник", "оборот", "запись zoom", "код доступа"]
 
 
@@ -357,10 +373,15 @@ def ensure_tab(sheets):
         log("создан лист «%s»" % OKK_TAB)
     vals = sheets.values().get(spreadsheetId=MARKETING_SHEET_ID,
                                range="'%s'!1:1" % OKK_TAB).execute().get("values", [])
-    if not vals or vals[0] != OKK_HEADERS:
+    hdr = list(vals[0]) if vals else []
+    # недостающие колонки — в конец, чтобы ничего не сдвигать под уже записанными строками
+    missing = [c for c in OKK_HEADERS if c not in hdr]
+    if missing or not hdr:
+        hdr = hdr + missing
         sheets.values().update(spreadsheetId=MARKETING_SHEET_ID,
                                range="'%s'!A1" % OKK_TAB, valueInputOption="RAW",
-                               body={"values": [OKK_HEADERS]}).execute()
+                               body={"values": [hdr]}).execute()
+    return hdr
 
 
 def stage_score(review, key):
@@ -368,6 +389,14 @@ def stage_score(review, key):
         if s.get("key") == key:
             return s.get("score")
     return None
+
+
+def elements_count(review, key):
+    """Сколько обязательных элементов отмечено моделью — «спросил» или «прозвучало»."""
+    items = review.get("checklist") or []
+    if not items:
+        return ""
+    return "%d из %d" % (sum(1 for x in items if x.get(key)), len(ELEMENTS) or len(items))
 
 
 def to_row(row, review, metrics, model, stamp, meta=None):
@@ -390,6 +419,7 @@ def to_row(row, review, metrics, model, stamp, meta=None):
         metrics["questions"], metrics["words"],
         review.get("summary", ""), model,
         json.dumps(review, ensure_ascii=False)[:48000],   # лимит ячейки Google — 50 тыс.
+        elements_count(review, "asked"), elements_count(review, "present"),
         meta.get("manager", ""), meta.get("held_at", ""), meta.get("source", ""),
         meta.get("turnover", ""), meta.get("zoom", ""), meta.get("passcode", ""),
     ]
@@ -423,11 +453,15 @@ def main():
     zoom_meta = read_zoom_meta(values)
 
     # уже разобранные — по ID сделки
-    ensure_tab(sheets)
+    hdr = ensure_tab(sheets)
     done_rows = values.get(spreadsheetId=MARKETING_SHEET_ID,
                            range="'%s'!A2:B100000" % OKK_TAB).execute().get("values", [])
     done = {r[1].strip() for r in done_rows if len(r) > 1 and r[1].strip()}
-    pending = [r for r in pending if r.get("ID", "").strip() not in done]
+    done_row = {r[1].strip(): i + 2 for i, r in enumerate(done_rows) if len(r) > 1 and r[1].strip()}
+    if REDO:
+        log("режим перезаписи: разобранные встречи будут обновлены")
+    else:
+        pending = [r for r in pending if r.get("ID", "").strip() not in done]
 
     # свежие сверху: лист заполняется сверху вниз, значит новые — в конце
     pending = list(reversed(pending))
@@ -467,10 +501,21 @@ def main():
             log("[%s] разбор моделью (%d символов)..." % (rid, len(sent)))
             review, model = ask_model(models, headers, sent, metrics)
 
-            values.append(spreadsheetId=MARKETING_SHEET_ID, range="'%s'!A1" % OKK_TAB,
-                          valueInputOption="RAW", insertDataOption="INSERT_ROWS",
-                          body={"values": [to_row(row, review, metrics, model, stamp,
-                                                  zoom_meta.get(rid))]}).execute()
+            fields = dict(zip(OKK_HEADERS, to_row(row, review, metrics, model, stamp, zoom_meta.get(rid))))
+            if REDO and rid in done_row:
+                # перезаписываем только колонки разбора; всё остальное в строке (замеры речи) сохраняем
+                rownum = done_row[rid]
+                current = values.get(spreadsheetId=MARKETING_SHEET_ID,
+                                     range="'%s'!%d:%d" % (OKK_TAB, rownum, rownum)).execute().get("values", [[]])[0]
+                current = current + [""] * (len(hdr) - len(current))
+                merged = [fields.get(c, current[i]) for i, c in enumerate(hdr)]
+                values.update(spreadsheetId=MARKETING_SHEET_ID,
+                              range="'%s'!A%d" % (OKK_TAB, rownum),
+                              valueInputOption="RAW", body={"values": [merged]}).execute()
+            else:
+                values.append(spreadsheetId=MARKETING_SHEET_ID, range="'%s'!A1" % OKK_TAB,
+                              valueInputOption="RAW", insertDataOption="INSERT_ROWS",
+                              body={"values": [[fields.get(c, "") for c in hdr]]}).execute()
             results.append({"row": row, "metrics": metrics, "review": review})
             ok += 1
             # содержание разбора в лог не пишем: логи публичного репозитория видны всем

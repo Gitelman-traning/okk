@@ -451,6 +451,19 @@ function openRow(i){
     +'<div class="kv"><span class="k">Запрещённая фраза</span><span class="v '+(d.banned?"bad":"ok")+'">'+(d.banned?"прозвучала":"чисто")+'</span></div>'
     +'<div class="kv"><span class="k">Вопросов задано</span><span class="v">'+d.questions+'</span></div>'
     +'<div class="kv"><span class="k">Слов в расшифровке</span><span class="v">'+d.words+'</span></div></div>';
+  var chk=(r.checklist||[]);
+  if(chk.length){
+    var askedN=chk.filter(function(c){return c.asked}).length, presN=chk.filter(function(c){return c.present}).length;
+    right+='<div class="block"><h3>Чек-лист встречи — спросил '+askedN+' из '+chk.length+', прозвучало '+presN+'</h3>'
+      +chk.map(function(c,i){
+        var nm=(PAYLOAD.manual&&PAYLOAD.manual.must_labels&&PAYLOAD.manual.must_labels[i])||c.id;
+        return '<div class="kv" style="flex-direction:column;align-items:stretch;gap:3px">'
+          +'<div style="display:flex;justify-content:space-between;gap:10px"><span class="k">'+(i+1)+'. '+esc(nm)+'</span>'
+          +'<span class="v"><span class="'+(c.asked?"ok":"bad")+'">'+(c.asked?"спросил":"не спросил")+'</span>'
+          +' · <span class="'+(c.present?"ok":"bad")+'">'+(c.present?"прозвучало":"нет")+'</span></span></div>'
+          +(c.quote?'<span style="font-size:12px;color:var(--faint)">«'+esc(c.quote)+'»</span>':"")+'</div>';
+      }).join("")+'</div>';
+  }
   function list(title,arr,cl){
     if(!arr||!arr.length) return "";
     return '<div class="block"><h3>'+title+'</h3><ul class="list '+cl+'">'

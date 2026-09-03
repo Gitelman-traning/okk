@@ -218,15 +218,24 @@ MANUAL.meetings.forEach(function(m){
     +'<tr><td class="k">Вероятность сделки</td><td class="num">'+m.prob+'%</td><td class="num">'+(s.prob==null?"—":s.prob+"%")+'</td><td class="gap '+(s.prob==null?"":gapCls(m.prob-s.prob))+'">'+(s.prob==null?"—":signed(m.prob-s.prob))+'</td></tr>';
 
   // обязательные элементы: система проверяет только счётчиками
-  var sysMust = {7: s.komitet>=4, 8: null};
+  var chk = (s.review && s.review.checklist) || [];
   var must=(MANUAL.must_labels||[]).map(function(label,i){
     var h=m.must[i]; var note=(m.must_notes||{})[String(i+1)];
-    var sv = (i===7) ? (s.komitet>=4) : null;
-    var svTxt = sv==null ? '<span class="na">не проверяет</span>' : (sv?'<span class="yes">да</span>':'<span class="no">нет</span>');
-    var flag = (sv==null) ? "" : (sv===h ? '<span class="gap ok">совпало</span>' : '<span class="gap big">разошлось</span>');
+    var c = chk[i] || null;
+    var svTxt, flag;
+    if(!c){
+      svTxt='<span class="na">не проверяет</span>'; flag="";
+    } else {
+      svTxt='<span class="'+(c.asked?"yes":"no")+'">спросил: '+(c.asked?"да":"нет")+'</span>'
+        +' · <span class="'+(c.present?"yes":"no")+'">прозвучало: '+(c.present?"да":"нет")+'</span>'
+        +(c.quote?'<span class="note-s">«'+esc(c.quote)+'»</span>':"");
+      // человек ставил «да», если элемент был в диалоге — сравниваем с «прозвучало»
+      flag = (!!c.present===!!h) ? '<span class="gap ok">совпало</span>' : '<span class="gap big">разошлось</span>';
+    }
     return '<tr><td class="k">'+(i+1)+'. '+esc(label)+(note?'<span class="note-s">'+esc(note)+'</span>':"")+'</td>'
       +'<td>'+(h?'<span class="yes">да</span>':'<span class="no">нет</span>')+'</td><td>'+svTxt+'</td><td>'+flag+'</td></tr>';
   }).join("");
+  var sysAsked = chk.filter(function(c){return c&&c.asked}).length, sysPresent = chk.filter(function(c){return c&&c.present}).length;
   var yes=m.must.filter(Boolean).length;
 
   html+='<div class="meet"><div class="head"><h2>'+esc(m.client)+'</h2><span>'+esc(m.held)+' · Камилла Пацкевич</span>'
@@ -243,8 +252,8 @@ MANUAL.meetings.forEach(function(m){
     +'<div class="block"><h3>Замеры</h3><table><thead><tr><th>Что</th><th class="num">На слух</th><th class="num">По расшифровке</th><th class="num">Разница</th></tr></thead><tbody>'+meas+'</tbody></table>'
     +'<h3 style="margin-top:16px">Итог</h3><table><tbody>'+out+'</tbody></table></div>'
     +'</div>'
-    +'<div class="block"><h3>Обязательные элементы — '+yes+' из '+m.must.length+' по оценке человека</h3>'
-    +'<table><thead><tr><th>Элемент</th><th>Человек</th><th>Система</th><th></th></tr></thead><tbody>'+must+'</tbody></table></div>'
+    +'<div class="block"><h3>Обязательные элементы — человек: '+yes+' из '+m.must.length+(chk.length?' · система: спросил '+sysAsked+', прозвучало '+sysPresent:'')+'</h3>'
+    +'<table><thead><tr><th>Элемент</th><th>Человек</th><th>Система</th><th>По «прозвучало»</th></tr></thead><tbody>'+must+'</tbody></table></div>'
     +'<div class="block"><h3>Что улучшить, по мнению человека</h3><p style="margin:0;font-size:13.5px">'+esc((m.improve||[]).join("; "))+'</p>'
     +(m.quote?'<p style="margin:6px 0 0;font-size:12.5px;color:var(--faint)">Цитата, решившая исход: «'+esc(m.quote)+'»</p>':"")+'</div>'
     +'</div>';

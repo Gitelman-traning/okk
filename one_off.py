@@ -64,9 +64,7 @@ def main():
     review, model = okk.ask_model(models, headers, sent, metrics)
 
     # строка в лист «ОКК» — как у обычного прогона, плюс замеры речи
-    okk.ensure_tab(sheets)
-    hdr = values.get(spreadsheetId=okk.MARKETING_SHEET_ID,
-                     range="'%s'!1:1" % okk.OKK_TAB).execute().get("values", [[]])[0]
+    hdr = okk.ensure_tab(sheets)
     stamp = time.strftime("%d.%m.%Y %H:%M")
     row = okk.to_row({"ID": "", "first_name": CLIENT, "last_name": "",
                       "amo_link": "", "doc_url": ""},
@@ -76,9 +74,19 @@ def main():
     line.update({"речь менеджера %": speech["share"], "длинный монолог": speech["monolog"],
                  "реплик менеджер/клиент": speech["lines"], "минут записи": speech["minutes"],
                  "как определён менеджер": speech["how"]})
-    values.append(spreadsheetId=okk.MARKETING_SHEET_ID, range="'%s'!A1" % okk.OKK_TAB,
-                  valueInputOption="RAW", insertDataOption="INSERT_ROWS",
-                  body={"values": [[line.get(c, "") for c in hdr]]}).execute()
+    # такая встреча уже есть — перезаписываем, а не плодим дубли
+    existing = values.get(spreadsheetId=okk.MARKETING_SHEET_ID,
+                          range="'%s'!C2:C100000" % okk.OKK_TAB).execute().get("values", [])
+    rownum = next((i + 2 for i, r in enumerate(existing) if r and r[0].strip() == CLIENT), None)
+    payload = [[line.get(c, "") for c in hdr]]
+    if rownum:
+        values.update(spreadsheetId=okk.MARKETING_SHEET_ID, range="'%s'!A%d" % (okk.OKK_TAB, rownum),
+                      valueInputOption="RAW", body={"values": payload}).execute()
+        log("строка %d перезаписана" % rownum)
+    else:
+        values.append(spreadsheetId=okk.MARKETING_SHEET_ID, range="'%s'!A1" % okk.OKK_TAB,
+                      valueInputOption="RAW", insertDataOption="INSERT_ROWS",
+                      body={"values": payload}).execute()
 
     log("ГОТОВО: %s — цель %s, фиксация %s, речь менеджера %d%%, монолог %s"
         % (CLIENT, review.get("goal_achieved"),
