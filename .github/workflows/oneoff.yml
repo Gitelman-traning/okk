@@ -22,6 +22,14 @@ on:
         description: 'Meeting date, dd.mm.yy'
         required: false
         default: ''
+      models:
+        description: 'Models to compare, comma separated (empty = default free pick)'
+        required: false
+        default: ''
+      tab:
+        description: 'Sheet tab to write into (empty = main)'
+        required: false
+        default: ''
 
 jobs:
   oneoff:
@@ -46,3 +54,6 @@ jobs:
           REC_CLIENT: ${{ inputs.client }}
           REC_MANAGER: ${{ inputs.manager }}
           REC_DATE: ${{ inputs.date }}
+          REC_MODELS: ${{ inputs.models }}
+          OKK_TAB: ${{ inputs.tab || 'ОКК' }}
+          MAX_CHARS: ${{ inputs.models && '400000' || '' }}
