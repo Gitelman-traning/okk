@@ -453,10 +453,12 @@ function openRow(i){
     +'<div class="kv"><span class="k">Слов в расшифровке</span><span class="v">'+d.words+'</span></div></div>';
   var chk=(r.checklist||[]);
   if(chk.length){
-    var askedN=chk.filter(function(c){return c.asked}).length, presN=chk.filter(function(c){return c.present}).length;
+    var askedN=chk.filter(function(c){return c.asked===true}).length, presN=chk.filter(function(c){return c.present===true}).length;
     right+='<div class="block"><h3>Чек-лист встречи — спросил '+askedN+' из '+chk.length+', прозвучало '+presN+'</h3>'
       +chk.map(function(c,i){
-        var nm=(PAYLOAD.manual&&PAYLOAD.manual.must_labels&&PAYLOAD.manual.must_labels[i])||c.id;
+        var el=(PAYLOAD.elements||[]).filter(function(e){return e.id===c.id})[0];
+        var nm=el?el.name:c.id;
+        if(c.present==null) return '<div class="kv"><span class="k">'+(i+1)+'. '+esc(nm)+'</span><span class="v" style="color:var(--faint)">не проверено</span></div>';
         return '<div class="kv" style="flex-direction:column;align-items:stretch;gap:3px">'
           +'<div style="display:flex;justify-content:space-between;gap:10px"><span class="k">'+(i+1)+'. '+esc(nm)+'</span>'
           +'<span class="v"><span class="'+(c.asked?"ok":"bad")+'">'+(c.asked?"спросил":"не спросил")+'</span>'
