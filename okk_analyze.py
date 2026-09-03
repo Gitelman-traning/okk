@@ -394,12 +394,36 @@ def stage_score(review, key):
     return None
 
 
+def normalize_checklist(review):
+    """Ровно по одному объекту на каждый элемент конфига, в порядке конфига.
+    Модель иногда пропускает элемент — тогда ставим «не проверено», а не сдвигаем остальные."""
+    got = {}
+    for c in review.get("checklist") or []:
+        if isinstance(c, dict) and c.get("id"):
+            got[str(c["id"]).strip()] = c
+    fixed = []
+    for e in ELEMENTS:
+        c = got.get(e["id"])
+        if c is None:
+            c = {"id": e["id"], "asked": None, "present": None, "quote": "",
+                 "why": "модель не вернула ответ по этому элементу"}
+        else:
+            c = {"id": e["id"], "asked": bool(c.get("asked")), "present": bool(c.get("present")),
+                 "quote": c.get("quote") or "", "why": c.get("why") or ""}
+            if c["asked"] and not c["present"]:
+                c["present"] = True
+        fixed.append(c)
+    if ELEMENTS:
+        review["checklist"] = fixed
+    return review
+
+
 def elements_count(review, key):
     """Сколько обязательных элементов отмечено моделью — «спросил» или «прозвучало»."""
     items = review.get("checklist") or []
     if not items:
         return ""
-    return "%d из %d" % (sum(1 for x in items if x.get(key)), len(ELEMENTS) or len(items))
+    return "%d из %d" % (sum(1 for x in items if x.get(key) is True), len(ELEMENTS) or len(items))
 
 
 def to_row(row, review, metrics, model, stamp, meta=None):
@@ -503,6 +527,7 @@ def main():
             sent = text if len(text) <= MAX_CHARS else text[:MAX_CHARS // 3] + "\n…\n" + text[-2 * MAX_CHARS // 3:]
             log("[%s] разбор моделью (%d символов)..." % (rid, len(sent)))
             review, model = ask_model(models, headers, sent, metrics)
+            review = normalize_checklist(review)
 
             fields = dict(zip(OKK_HEADERS, to_row(row, review, metrics, model, stamp, zoom_meta.get(rid))))
             if REDO and rid in done_row:

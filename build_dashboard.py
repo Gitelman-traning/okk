@@ -131,7 +131,12 @@ def main():
     manual = {}
     if os.path.exists(MANUAL):
         manual = json.loads(io.open(MANUAL, encoding="utf-8").read())
-    payload = {"generated": generated, "model": model, "items": items, "manual": manual}
+    elements = []
+    if os.path.exists("checklist.local.json"):
+        cfg = json.loads(io.open("checklist.local.json", encoding="utf-8").read())
+        elements = [{"id": e["id"], "name": e["name"]} for e in cfg.get("elements", [])]
+    payload = {"generated": generated, "model": model, "items": items, "manual": manual,
+               "elements": elements}
     tpl = io.open(TPL, encoding="utf-8").read()
     data = json.dumps(payload, ensure_ascii=False)
 

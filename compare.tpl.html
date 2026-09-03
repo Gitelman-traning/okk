@@ -225,10 +225,14 @@ MANUAL.meetings.forEach(function(m){
     +'<tr><td class="k">Вероятность сделки</td><td class="num">'+m.prob+'%</td><td class="num">'+(s.prob==null?"—":s.prob+"%")+'</td><td class="gap '+(s.prob==null?"":gapCls(m.prob-s.prob))+'">'+(s.prob==null?"—":signed(m.prob-s.prob))+'</td></tr>';
 
   // обязательные элементы: система проверяет только счётчиками
-  var chk = (s.review && s.review.checklist) || [];
+  var chkList = (s.review && s.review.checklist) || [];
+  var byId = {}; chkList.forEach(function(c){ if(c&&c.id) byId[c.id]=c; });
+  var ELS = PAYLOAD.elements || [];
+  var chk = ELS.map(function(e){ return byId[e.id] || null; });
   var must=(MANUAL.must_labels||[]).map(function(label,i){
     var h=m.must[i]; var note=(m.must_notes||{})[String(i+1)];
     var c = chk[i] || null;
+    if(c && c.present==null) c = null;   // модель не вернула — считаем «не проверяет»
     var svTxt, flag;
     if(!c){
       svTxt='<span class="na">не проверяет</span>'; flag="";
@@ -245,7 +249,7 @@ MANUAL.meetings.forEach(function(m){
     return '<tr><td class="k">'+(i+1)+'. '+esc(label)+(note?'<span class="note-s">'+esc(note)+'</span>':"")+'</td>'
       +'<td>'+(h?'<span class="yes">да</span>':'<span class="no">нет</span>')+'</td><td>'+svTxt+'</td><td>'+flag+'</td></tr>';
   }).join("");
-  var sysAsked = chk.filter(function(c){return c&&c.asked}).length, sysPresent = chk.filter(function(c){return c&&c.present}).length;
+  var sysAsked = chk.filter(function(c){return c&&c.asked===true}).length, sysPresent = chk.filter(function(c){return c&&c.present===true}).length;
   var yes=m.must.filter(Boolean).length;
 
   html+='<div class="meet"><div class="head"><h2>'+esc(m.client)+'</h2><span>'+esc(m.held)+' · Камилла Пацкевич</span>'

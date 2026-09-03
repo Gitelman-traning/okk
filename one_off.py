@@ -62,6 +62,7 @@ def main():
     sent = text if len(text) <= okk.MAX_CHARS else (
         text[:okk.MAX_CHARS // 3] + "\n…\n" + text[-2 * okk.MAX_CHARS // 3:])
     review, model = okk.ask_model(models, headers, sent, metrics)
+    review = okk.normalize_checklist(review)
 
     # строка в лист «ОКК» — как у обычного прогона, плюс замеры речи
     hdr = okk.ensure_tab(sheets)
