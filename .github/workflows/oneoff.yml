@@ -1,0 +1,48 @@
+name: OKK one-off
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Zoom share link'
+        required: true
+      passcode:
+        description: 'Passcode'
+        required: false
+        default: ''
+      client:
+        description: 'Client name'
+        required: false
+        default: ''
+      manager:
+        description: 'Manager name'
+        required: false
+        default: ''
+      date:
+        description: 'Meeting date, dd.mm.yy'
+        required: false
+        default: ''
+
+jobs:
+  oneoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python one_off.py
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          CHECKLIST_JSON: ${{ secrets.CHECKLIST_JSON }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          DEEPGRAM_TOKEN: ${{ secrets.DEEPGRAM_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          REC_URL: ${{ inputs.url }}
+          REC_PASSCODE: ${{ inputs.passcode }}
+          REC_CLIENT: ${{ inputs.client }}
+          REC_MANAGER: ${{ inputs.manager }}
+          REC_DATE: ${{ inputs.date }}
