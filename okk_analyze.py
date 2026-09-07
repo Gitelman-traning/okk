@@ -456,6 +456,11 @@ def ask_model(models, headers, transcript, metrics, script=None):
     }
     if IS_OPENROUTER:
         body["usage"] = {"include": True}     # OpenRouter возвращает стоимость запроса в долларах
+    # дополнительные параметры провайдера (например, отключить «мысли» модели: {"thinking": {"type": "disabled"}})
+    try:
+        body.update(json.loads(os.environ.get("LLM_EXTRA_JSON") or "{}"))
+    except ValueError:
+        log("   LLM_EXTRA_JSON не разобрался как JSON — игнорирую")
     last = ""
     for model in models:
         body["model"] = model

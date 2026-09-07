@@ -76,6 +76,7 @@ jobs:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_PRICES_JSON: ${{ secrets.LLM_PRICES_JSON }}
+          LLM_EXTRA_JSON: ${{ secrets.LLM_EXTRA_JSON }}
           REC_URL: ${{ inputs.url }}
           REC_PASSCODE: ${{ inputs.passcode }}
           REC_CLIENT: ${{ inputs.client }}
