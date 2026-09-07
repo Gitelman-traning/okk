@@ -7,6 +7,10 @@ on:
         description: 'Diagnostics per month for the estimate'
         required: false
         default: '300'
+      ping:
+        description: 'Probe reasoning parameters with tiny requests (1 = yes)'
+        required: false
+        default: ''
 
 jobs:
   models:
@@ -25,3 +29,4 @@ jobs:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_PRICES_JSON: ${{ secrets.LLM_PRICES_JSON }}
           MEETINGS: ${{ inputs.meetings }}
+          LLM_PING: ${{ inputs.ping }}

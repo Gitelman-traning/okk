@@ -42,7 +42,41 @@ def row(m):
     )
 
 
+def ping():
+    """Копеечные запросы: какой параметр отключает «мысли» у провайдера и как это меняет usage."""
+    base = OR_URL.rsplit("/", 1)[0]
+    variants = [("без параметров", {}),
+                ("reasoning.effort=none", {"reasoning": {"effort": "none"}}),
+                ("reasoning.enabled=false", {"reasoning": {"enabled": False}}),
+                ("thinking.type=disabled", {"thinking": {"type": "disabled"}}),
+                ("reasoning_effort=none", {"reasoning_effort": "none"}),
+                ("reasoning_effort=minimal", {"reasoning_effort": "minimal"})]
+    for name, extra in variants:
+        body = {"model": os.environ.get("PING_MODEL", "anthropic/claude-sonnet-5"),
+                "messages": [{"role": "user", "content": "Ответь одним словом: ок"}],
+                "max_tokens": 200, "temperature": 0}
+        body.update(extra)
+        try:
+            r = requests.post(base + "/chat/completions", headers={"Authorization": "Bearer " + KEY},
+                              json=body, timeout=120)
+            if r.status_code != 200:
+                print("%-26s HTTP %s: %s" % (name, r.status_code, r.text[:160].replace(chr(10), " ")))
+                continue
+            d = r.json()
+            u = d.get("usage") or {}
+            det = u.get("completion_tokens_details") or {}
+            msg = (d.get("choices") or [{}])[0].get("message") or {}
+            print("%-26s ok: prompt %s, completion %s, reasoning %s, content=%r" % (
+                name, u.get("prompt_tokens"), u.get("completion_tokens"), det.get("reasoning_tokens"),
+                (msg.get("content") or "")[:20]))
+        except Exception as e:
+            print("%-26s ошибка %s" % (name, str(e)[:120]))
+
+
 def main():
+    if os.environ.get("LLM_PING"):
+        ping()
+        return
     r = requests.get(OR_URL, headers={"Authorization": "Bearer " + KEY} if KEY else {}, timeout=60)
     r.raise_for_status()
     models = r.json().get("data", [])
