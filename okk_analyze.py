@@ -106,6 +106,18 @@ def load_checklist():
 
 CONTEXT, MUST_SAY, MUST_NOT_SAY, NORMS, ELEMENTS, SCRIPTS = load_checklist()
 
+# Обезличивать расшифровку перед отправкой модели (ANONYMIZE=0 выключает — только для отладки).
+ANONYMIZE = os.environ.get("ANONYMIZE", "1").strip().lower() not in ("0", "false", "no")
+
+
+def anonymizer_for(client="", manager="", company=""):
+    """Обезличиватель для одной встречи или None, если выключен."""
+    if not ANONYMIZE:
+        return None
+    from anonymize import Anonymizer
+    return Anonymizer(client=client, manager=manager, company=company)
+
+
 # Перезаписывать уже разобранные встречи (после смены чек-листа), а не пропускать их.
 REDO = os.environ.get("REDO", "").strip().lower() in ("1", "true", "yes")
 
@@ -706,7 +718,14 @@ def main():
             sent = text if len(text) <= MAX_CHARS else text[:MAX_CHARS // 3] + "\n…\n" + text[-2 * MAX_CHARS // 3:]
             log("[%s] разбор моделью (%d символов)..." % (rid, len(sent)))
             script = script_for((zoom_meta.get(rid) or {}).get("manager", ""))
+            anon = anonymizer_for(client=(row.get("first_name", "") + " " + row.get("last_name", "")).strip(),
+                                  manager=(zoom_meta.get(rid) or {}).get("manager", ""), company=row.get("company", ""))
+            if anon:
+                sent = anon.hide(sent)
+                log("[%s] обезличено: %s" % (rid, anon.summary()))
             review, model = ask_model(models, headers, sent, metrics, script)
+            if anon:
+                review = anon.restore(review)
             review = normalize_checklist(review)
             review = normalize_script(review, script, text)
 

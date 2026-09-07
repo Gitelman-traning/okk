@@ -88,6 +88,10 @@ def analyze(dg, deal, runs, headers):
     if script:
         log("личный скрипт: %s (%d пунктов)" % (script.get("name", ""), len(script.get("items", []))))
     stamp = time.strftime("%d.%m.%Y %H:%M")
+    anon = okk.anonymizer_for(client=deal.get("client", ""), manager=deal.get("manager", ""))
+    if anon:
+        sent = anon.hide(sent)
+        log("обезличено: %s" % anon.summary())
 
     out = []
     for candidates in runs:
@@ -96,6 +100,8 @@ def analyze(dg, deal, runs, headers):
         except Exception as e:
             log("[%s] разбор не получился: %s: %s" % (candidates[0], type(e).__name__, str(e)[:200]))
             continue
+        if anon:
+            review = anon.restore(review)
         review = okk.normalize_checklist(review)
         review = okk.normalize_script(review, script, text)
         review["speech"] = speech

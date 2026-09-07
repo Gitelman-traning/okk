@@ -59,6 +59,10 @@ def main():
         if len(text) < 2000:
             skipped += 1
             continue
+        # в хранилище сайта кладём обезличенный текст: «вопрос по встрече» уходит внешней модели
+        from anonymize import Anonymizer
+        anon = Anonymizer(client=r.get("клиент", ""), manager=r.get("менеджер", ""))
+        text = anon.hide(text)
         items.append({"key": "t:" + rid, "value": text[:MAX_CHARS]})
         print("[%s] %d символов" % (rid, len(text)))
 
