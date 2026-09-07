@@ -62,22 +62,22 @@ a{color:var(--gold)}
 .pane{flex:1;min-width:0;display:flex;flex-direction:column}
 @media (max-width:760px){.side{width:66px}.side .txt,.side nav a span,.side .collapse span{display:none}.side nav a,.side .collapse{justify-content:center;padding:11px 0}}
 
-main{padding:22px 24px 70px;display:flex;flex-direction:column;gap:18px}
+main{padding:16px 22px 60px;display:flex;flex-direction:column;gap:12px}
 .pick{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .pick label{font-size:12.5px;color:var(--dim)}
 .pick select{font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line-2);border-radius:10px;padding:8px 12px}
 .pick .tag{font-size:12px;font-weight:600;padding:4px 11px;border-radius:9px;background:var(--gold-soft);color:var(--gold)}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.kpi{border-radius:14px;padding:15px 17px;background:var(--soft);display:flex;flex-direction:column;gap:3px}
-.kpi:nth-child(3n+1){background:var(--ok-bg)} .kpi:nth-child(3n+2){background:var(--mid-bg)} .kpi:nth-child(3n){background:var(--bad-bg)}
-.kpi .k{font-size:12.5px;color:var(--dim)} .kpi .v{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.05;font-variant-numeric:tabular-nums} .kpi .n{font-size:11.5px;color:var(--faint)}
-.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px}
+.kpi{border-radius:11px;padding:9px 12px;background:var(--soft);display:flex;flex-direction:column;gap:2px}
+.kpi{border:1px solid var(--line)}
+.kpi .k{font-size:11.5px;color:var(--dim)} .kpi .v{font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums} .kpi .n{font-size:11px;color:var(--faint)}
+.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}
 @media (max-width:1100px){.grid{grid-template-columns:1fr}}
-.widget{background:var(--card);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.widget{background:var(--card);border-radius:13px;padding:14px 16px;display:flex;flex-direction:column;gap:9px}
 .widget.wide{grid-column:1 / -1}
 .wtitle{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.wtitle h2{margin:0;font-size:15px;font-weight:600}
-.wtitle span{font-size:12.5px;color:var(--faint)}
+.wtitle h2{margin:0;font-size:13.5px;font-weight:600}
+.wtitle span{font-size:12px;color:var(--faint)}
 .chart{width:100%;overflow:visible}
 text{font-family:Inter,Arial,sans-serif}
 .axis{fill:var(--faint);font-size:11px} .axis-name{fill:var(--dim);font-size:11.5px;font-weight:500}
@@ -85,15 +85,15 @@ text{font-family:Inter,Arial,sans-serif}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
 .legend .dash{width:14px;height:0;border-top:2px dashed var(--faint);border-radius:0}
-.takeaway{font-size:13px;color:var(--dim);background:var(--soft);border-radius:11px;padding:11px 14px}
+.takeaway{font-size:12.5px;color:var(--dim);background:var(--soft);border-radius:9px;padding:8px 11px}
 .takeaway b{color:var(--ink);font-weight:600}
 .srow{display:flex;align-items:center;gap:12px;font-size:13px}
 .srow .nm{width:190px;flex:none;color:var(--dim)}
-.scriptcard{background:var(--card);border-radius:16px;padding:18px 20px;margin:0 0 18px}
-.scriptcard h2{margin:0 0 4px;font-size:15px;font-weight:600}
+.scriptcard{background:var(--card);border-radius:13px;padding:14px 16px;margin:0}
+.scriptcard h2{margin:0 0 3px;font-size:13.5px;font-weight:600}
 .scriptcard .sub{margin:0 0 12px;font-size:12.5px;color:var(--dim)}
-.scriptcard table{width:100%;border-collapse:collapse;font-size:13px}
-.scriptcard th,.scriptcard td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.scriptcard table{width:100%;border-collapse:collapse;font-size:12.5px}
+.scriptcard th,.scriptcard td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .scriptcard th{font-size:11.5px;font-weight:500;color:var(--faint)}
 .scriptcard .bar{height:8px;border-radius:5px;background:var(--soft);position:relative;overflow:hidden;min-width:120px}
 .scriptcard .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--gold-b)}
@@ -199,11 +199,11 @@ footer{padding:8px 24px 30px;font-size:12px;color:var(--faint)}
 
 /* лента вердиктов */
 .feed{display:flex;flex-direction:column;gap:10px}
-.fr{display:grid;grid-template-columns:6px 200px 150px 1fr 230px 100px;gap:16px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);cursor:pointer}
+.fr{display:grid;grid-template-columns:5px 180px 140px 1fr 220px 90px;gap:12px;align-items:center;padding:8px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line);cursor:pointer}
 .fr:hover{background:var(--zebra)} .fr.open{background:var(--card);border-color:var(--gold-a)} .fr:focus-visible{outline:2px solid var(--gold-b)}
-.fbar{width:6px;height:44px;border-radius:4px;background:var(--faint)} .lvl-bad .fbar{background:var(--bad)} .lvl-mid .fbar{background:var(--mid)} .lvl-ok .fbar{background:var(--ok)}
+.fbar{width:5px;height:34px;border-radius:4px;background:var(--faint)} .lvl-bad .fbar{background:var(--bad)} .lvl-mid .fbar{background:var(--mid)} .lvl-ok .fbar{background:var(--ok)}
 .fwho b{display:block;font-size:13.5px;font-weight:600} .fwho small{display:block;color:var(--faint);font-size:12px}
-.fverdict{font-weight:700;font-size:15px} .lvl-bad .fverdict{color:var(--bad)} .lvl-mid .fverdict{color:var(--mid)} .lvl-ok .fverdict{color:var(--ok)}
+.fverdict{font-weight:700;font-size:14px} .lvl-bad .fverdict{color:var(--bad)} .lvl-mid .fverdict{color:var(--mid)} .lvl-ok .fverdict{color:var(--ok)}
 .fverdict small{display:block;font-weight:400;color:var(--dim);font-size:12px}
 .fgap{font-size:12.5px;color:var(--dim);min-width:0} .fgap b{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.03em;font-weight:600}
 .lvl-bad .fgap.fmain b,.lvl-mid .fgap.fmain b{color:var(--bad)}
