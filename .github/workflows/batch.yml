@@ -1,0 +1,63 @@
+name: OKK batch
+
+on:
+  workflow_dispatch:
+    inputs:
+      managers:
+        description: 'Managers (part of name), comma separated'
+        required: true
+      since:
+        description: 'Meetings not earlier than dd.mm.yy (empty = any)'
+        required: false
+        default: ''
+      limit:
+        description: 'How many meetings'
+        required: false
+        default: '10'
+      model:
+        description: 'Model id (empty = free pick)'
+        required: false
+        default: 'anthropic/claude-opus-5'
+      redo:
+        description: 'Re-analyze already processed (1 = yes)'
+        required: false
+        default: ''
+      tab:
+        description: 'Sheet tab to write into (empty = main)'
+        required: false
+        default: ''
+
+jobs:
+  batch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python batch_off.py
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          CHECKLIST_JSON: ${{ secrets.CHECKLIST_JSON }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          DEEPGRAM_TOKEN: ${{ secrets.DEEPGRAM_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          MANAGERS: ${{ inputs.managers }}
+          SINCE: ${{ inputs.since }}
+          LIMIT: ${{ inputs.limit }}
+          OKK_MODEL: ${{ inputs.model }}
+          REDO: ${{ inputs.redo }}
+          OKK_TAB: ${{ inputs.tab || 'ОКК' }}
+          MAX_CHARS: ${{ inputs.model && '400000' || '' }}
+          CACHE_DIR: cache
+      - name: Keep transcripts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transcripts-${{ github.run_id }}
+          path: cache/
+          if-no-files-found: ignore
+          retention-days: 90

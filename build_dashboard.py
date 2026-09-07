@@ -23,6 +23,8 @@ from googleapiclient.discovery import build
 SHEET_ID = os.environ.get("SHEET_ID", "").strip()
 OKK_TAB = os.environ.get("OKK_TAB", "ОКК").strip()
 ALT_TAB = os.environ.get("ALT_TAB", "ОКК модели").strip()
+# менеджеры, чьи встречи в дашборд не берём (нетипичные кейсы) — по подстроке имени
+EXCLUDE_MANAGERS = [m.strip().lower() for m in os.environ.get("EXCLUDE_MANAGERS", "Ткачева").split(",") if m.strip()]
 SA_FILE = os.environ.get("GOOGLE_SA_FILE", "").strip()
 SA_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
 TPL = os.environ.get("TPL", "dashboard.tpl.html")
@@ -144,15 +146,24 @@ def main():
         model = r.get("модель") or model
         items.append(row_item(r))
 
+    def keep(it):
+        return not any(x in (it.get("mgr") or "").lower() for x in EXCLUDE_MANAGERS)
+    items = [it for it in items if keep(it)]
+    alts = [it for it in alts if keep(it)]
+
     manual = {}
     if os.path.exists(MANUAL):
         manual = json.loads(io.open(MANUAL, encoding="utf-8").read())
-    elements = []
+    elements, scripts = [], {}
     if os.path.exists("checklist.local.json"):
         cfg = json.loads(io.open("checklist.local.json", encoding="utf-8").read())
         elements = [{"id": e["id"], "name": e["name"]} for e in cfg.get("elements", [])]
+        scripts = {k: {"name": s.get("name", k),
+                       "items": [{"id": i["id"], "name": i["name"], "mandatory": bool(i.get("mandatory")),
+                                  "code": bool(i.get("markers"))} for i in s.get("items", [])]}
+                   for k, s in (cfg.get("scripts") or {}).items()}
     payload = {"generated": generated, "model": model, "items": items, "manual": manual,
-               "elements": elements, "alts": alts}
+               "elements": elements, "alts": alts, "scripts": scripts}
     tpl = io.open(TPL, encoding="utf-8").read()
     data = json.dumps(payload, ensure_ascii=False)
 

@@ -667,6 +667,29 @@ function openRow(i){
           +(c.quote?'<span style="font-size:12px;color:var(--faint)">'+(c.at?'<b style="color:var(--gold)">⏱ '+esc(c.at)+'</b> ':'')+'«'+esc(c.quote)+'»</span>':"")+'</div>';
       }).join("")+'</div>';
   }
+  var cs=r.client_scores||{};
+  var csRows=[["autonomy","Автономность команды"],["initiative","Инициативность команды"],["belief","Вера в команду"],["value","Насколько решает запрос"],["comfort","Комфорт / вижу себя в тренинге"]]
+    .filter(function(x){return typeof cs[x[0]]==="number"});
+  if(csRows.length){
+    right+='<div class="block"><h3>Оценки клиента — назвал сам, по 10-балльной</h3>'+csRows.map(function(x){var v=cs[x[0]];
+      return '<div class="kv"><span class="k">'+x[1]+'</span><span class="v '+(v>=7?"ok":v<=4?"bad":"")+'">'+v+' / 10</span></div>'}).join("")+'</div>';
+  }
+  var scr=(r.script||[]);
+  if(scr.length){
+    var scDef=((PAYLOAD.scripts||{})[r.script_key])||{items:[],name:"Скрипт"};
+    var doneN=scr.filter(function(c){return c.done===true}).length;
+    var mand=scr.filter(function(c){return c.mandatory}), mandOk=mand.filter(function(c){return c.done===true}).length;
+    right+='<div class="block"><h3>'+esc(scDef.name)+' — выполнено '+doneN+' из '+scr.length+', обязательных '+mandOk+' из '+mand.length+'</h3>'
+      +scr.map(function(c,i){
+        var it=scDef.items.filter(function(e){return e.id===c.id})[0]; var nm=it?it.name:c.id;
+        var st=c.done==null?'<span style="color:var(--faint)">не проверено</span>':c.done?'<span class="ok">да</span>':'<span class="bad">нет</span>';
+        return '<div class="kv" style="flex-direction:column;align-items:stretch;gap:3px">'
+          +'<div style="display:flex;justify-content:space-between;gap:10px"><span class="k">'+(i+1)+'. '+(c.mandatory?'<b>':'')+esc(nm)+(c.mandatory?'</b>':'')
+          +(c.by==="code"?' <span style="font-size:11px;color:var(--faint)">код</span>':'')+'</span><span class="v">'+st+'</span></div>'
+          +(c.quote?'<span style="font-size:12px;color:var(--faint)">'+(c.at?'<b style="color:var(--gold)">⏱ '+esc(c.at)+'</b> ':'')+'«'+esc(c.quote)+'»</span>':'')
+          +(c.why&&c.by!=="code"?'<span style="font-size:12px;color:var(--dim)">'+esc(c.why)+'</span>':'')+'</div>';
+      }).join("")+'</div>';
+  }
   function list(title,arr,cl){
     if(!arr||!arr.length) return "";
     return '<div class="block"><h3>'+title+'</h3><ul class="list '+cl+'">'

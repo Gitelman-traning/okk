@@ -34,6 +34,10 @@ on:
         description: 'Reuse cached transcript of this client from a previous run (1 = yes)'
         required: false
         default: ''
+      model:
+        description: 'Single model for the main sheet row (empty = free pick)'
+        required: false
+        default: ''
 
 jobs:
   oneoff:
@@ -75,8 +79,9 @@ jobs:
           REC_MANAGER: ${{ inputs.manager }}
           REC_DATE: ${{ inputs.date }}
           REC_MODELS: ${{ inputs.models }}
+          OKK_MODEL: ${{ inputs.model }}
           OKK_TAB: ${{ inputs.tab || 'ОКК' }}
-          MAX_CHARS: ${{ inputs.models && '400000' || '' }}
+          MAX_CHARS: ${{ (inputs.models || inputs.model) && '400000' || '' }}
       - name: Keep transcript for next runs
         if: always()
         uses: actions/upload-artifact@v4

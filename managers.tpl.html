@@ -88,6 +88,19 @@ text{font-family:Inter,Arial,sans-serif}
 .takeaway b{color:var(--ink);font-weight:600}
 .srow{display:flex;align-items:center;gap:12px;font-size:13px}
 .srow .nm{width:190px;flex:none;color:var(--dim)}
+.scriptcard{background:var(--card);border-radius:16px;padding:18px 20px;margin:0 0 18px}
+.scriptcard h2{margin:0 0 4px;font-size:15px;font-weight:600}
+.scriptcard .sub{margin:0 0 12px;font-size:12.5px;color:var(--dim)}
+.scriptcard table{width:100%;border-collapse:collapse;font-size:13px}
+.scriptcard th,.scriptcard td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.scriptcard th{font-size:11.5px;font-weight:500;color:var(--faint)}
+.scriptcard .bar{height:8px;border-radius:5px;background:var(--soft);position:relative;overflow:hidden;min-width:120px}
+.scriptcard .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--gold-b)}
+.scriptcard .miss{color:var(--bad);font-size:12px}
+.scriptcard .top{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+@media (max-width:900px){.scriptcard .top{grid-template-columns:1fr}}
+.scriptcard .top h4{margin:0 0 6px;font-size:12.5px;font-weight:600;color:var(--dim)}
+.scriptcard .top ol{margin:0;padding-left:18px;font-size:13px;color:var(--ink)}
 .srow .track{flex:1;height:8px;border-radius:5px;background:var(--soft);position:relative;overflow:hidden}
 .srow .fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
 .srow .team{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--faint)}
@@ -220,6 +233,7 @@ footer{padding:8px 24px 30px;font-size:12px;color:var(--faint)}
     <span class="tag" id="role"></span>
   </div>
   <div class="kpis" id="kpis"></div>
+  <div id="script"></div>
   <div class="grid">
     <div class="widget">
       <div class="wtitle"><h2>Профиль против отдела</h2><span>средний балл по этапам, засечка — отдел</span></div>
@@ -312,6 +326,37 @@ function render(name){
   var n=list.length;
   var refs=list.filter(isRef).length;
   document.getElementById("role").textContent = /камилл/i.test(name) ? "эталон отдела" : (/мурад/i.test(name)?"тестовый трек":"");
+
+  /* личный скрипт менеджера: трек по встречам */
+  (function(){
+    var el=document.getElementById("script");
+    var key=Object.keys(PAYLOAD.scripts||{}).find(function(k){return name.toLowerCase().indexOf(k.toLowerCase())>=0});
+    if(!key){el.innerHTML="";return}
+    var sc=PAYLOAD.scripts[key];
+    var withS=list.filter(function(d){return d.review&&d.review.script&&d.review.script.length}).slice().reverse();
+    if(!withS.length){el.innerHTML='<div class="scriptcard"><h2>'+esc(sc.name)+'</h2><div class="takeaway">По этим встречам скрипт ещё не проверялся — нужен прогон с личным чек-листом.</div></div>';return}
+    var mandIds=sc.items.filter(function(i){return i.mandatory}).map(function(i){return i.id});
+    var nameOf={}; sc.items.forEach(function(i){nameOf[i.id]=i.name});
+    var missCount={}, pct=[];
+    var rows=withS.map(function(d){
+      var s=d.review.script; var done=s.filter(function(c){return c.done===true}).length; var p=Math.round(100*done/s.length); pct.push(p);
+      s.forEach(function(c){if(c.done===false) missCount[c.id]=(missCount[c.id]||0)+1});
+      var mandMiss=s.filter(function(c){return c.mandatory&&c.done!==true}).map(function(c){return nameOf[c.id]||c.id});
+      var code=s.filter(function(c){return c.by==="code"}), codeOk=code.filter(function(c){return c.done===true}).length;
+      var cs=d.review.client_scores||{}; var got=["autonomy","initiative","belief","value","comfort"].filter(function(k){return typeof cs[k]==="number"}).length;
+      return '<tr data-i="'+DATA.indexOf(d)+'" tabindex="0" style="cursor:pointer"><td class="num">'+esc(d.held||"—")+'</td><td>'+esc(d.client)+'</td>'
+        +'<td><div class="bar"><i style="width:'+p+'%"></i></div></td><td class="num">'+done+' / '+s.length+'</td>'
+        +'<td class="num">'+(mandIds.length-mandMiss.length)+' / '+mandIds.length+(mandMiss.length?'<div class="miss">упустил: '+esc(mandMiss.join("; "))+'</div>':'')+'</td>'
+        +'<td class="num">'+codeOk+' / '+code.length+'</td><td class="num">'+got+' / 5</td><td style="color:var(--gold);font-weight:600">разбор →</td></tr>';
+    }).join("");
+    var avgP=Math.round(pct.reduce(function(a,b){return a+b},0)/pct.length);
+    var worst=Object.keys(missCount).sort(function(a,b){return missCount[b]-missCount[a]}).slice(0,6);
+    el.innerHTML='<div class="scriptcard"><h2>'+esc(sc.name)+'</h2><p class="sub">'+withS.length+' встреч проверено по личному скрипту · в среднем выполнено '+avgP+'% пунктов</p>'
+      +'<table><thead><tr><th>Дата</th><th>Клиент</th><th>Полнота скрипта</th><th>Пунктов</th><th>Обязательные вопросы</th><th>Фразы-маркеры</th><th>Оценок клиента</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'
+      +'<div class="top"><div><h4>Чаще всего пропускает</h4><ol>'+worst.map(function(id){return '<li>'+esc(nameOf[id]||id)+' <span style="color:var(--faint)">— '+missCount[id]+' из '+withS.length+'</span></li>'}).join("")+'</ol></div>'
+      +'<div><h4>Как читать</h4><p style="margin:0;font-size:12.5px;color:var(--dim)">Полнота — доля пунктов скрипта, которые прозвучали. Обязательные вопросы — семь вопросов, без которых диагностика не считается проведённой. Фразы-маркеры ловит код по расшифровке: «80% через личные связи», «40 ниш», «иголки и нитки», «0,8 → 1,2», «30 часов», «48 часов», «за 10 дней».</p></div></div></div>';
+    el.querySelectorAll("tr[data-i]").forEach(function(tr){tr.addEventListener("click",function(){openRow(+tr.getAttribute("data-i"))})});
+  })();
 
   var done=list.filter(function(d){return d.achieved==="Да"}).length;
   var prob=avg(list.map(function(d){return d.prob}));
@@ -470,6 +515,29 @@ function openRow(i){
           +'<span class="v"><span class="'+(c.asked?"ok":"bad")+'">'+(c.asked?"спросил":"не спросил")+'</span>'
           +' · <span class="'+(c.present?"ok":"bad")+'">'+(c.present?"прозвучало":"нет")+'</span></span></div>'
           +(c.quote?'<span style="font-size:12px;color:var(--faint)">'+(c.at?'<b style="color:var(--gold)">⏱ '+esc(c.at)+'</b> ':'')+'«'+esc(c.quote)+'»</span>':"")+'</div>';
+      }).join("")+'</div>';
+  }
+  var cs=r.client_scores||{};
+  var csRows=[["autonomy","Автономность команды"],["initiative","Инициативность команды"],["belief","Вера в команду"],["value","Насколько решает запрос"],["comfort","Комфорт / вижу себя в тренинге"]]
+    .filter(function(x){return typeof cs[x[0]]==="number"});
+  if(csRows.length){
+    right+='<div class="block"><h3>Оценки клиента — назвал сам, по 10-балльной</h3>'+csRows.map(function(x){var v=cs[x[0]];
+      return '<div class="kv"><span class="k">'+x[1]+'</span><span class="v '+(v>=7?"ok":v<=4?"bad":"")+'">'+v+' / 10</span></div>'}).join("")+'</div>';
+  }
+  var scr=(r.script||[]);
+  if(scr.length){
+    var scDef=((PAYLOAD.scripts||{})[r.script_key])||{items:[],name:"Скрипт"};
+    var doneN=scr.filter(function(c){return c.done===true}).length;
+    var mand=scr.filter(function(c){return c.mandatory}), mandOk=mand.filter(function(c){return c.done===true}).length;
+    right+='<div class="block"><h3>'+esc(scDef.name)+' — выполнено '+doneN+' из '+scr.length+', обязательных '+mandOk+' из '+mand.length+'</h3>'
+      +scr.map(function(c,i){
+        var it=scDef.items.filter(function(e){return e.id===c.id})[0]; var nm=it?it.name:c.id;
+        var st=c.done==null?'<span style="color:var(--faint)">не проверено</span>':c.done?'<span class="ok">да</span>':'<span class="bad">нет</span>';
+        return '<div class="kv" style="flex-direction:column;align-items:stretch;gap:3px">'
+          +'<div style="display:flex;justify-content:space-between;gap:10px"><span class="k">'+(i+1)+'. '+(c.mandatory?'<b>':'')+esc(nm)+(c.mandatory?'</b>':'')
+          +(c.by==="code"?' <span style="font-size:11px;color:var(--faint)">код</span>':'')+'</span><span class="v">'+st+'</span></div>'
+          +(c.quote?'<span style="font-size:12px;color:var(--faint)">'+(c.at?'<b style="color:var(--gold)">⏱ '+esc(c.at)+'</b> ':'')+'«'+esc(c.quote)+'»</span>':'')
+          +(c.why&&c.by!=="code"?'<span style="font-size:12px;color:var(--dim)">'+esc(c.why)+'</span>':'')+'</div>';
       }).join("")+'</div>';
   }
   function list(title,arr,cl){

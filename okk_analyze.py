@@ -85,10 +85,11 @@ def load_checklist():
             "нет чек-листа: задай секрет CHECKLIST_JSON или положи checklist.local.json")
     cfg = json.loads(raw)
     return (cfg.get("context", ""), cfg.get("must_say", []),
-            cfg.get("must_not_say", []), cfg.get("norms", {}), cfg.get("elements", []))
+            cfg.get("must_not_say", []), cfg.get("norms", {}), cfg.get("elements", []),
+            cfg.get("scripts", {}))
 
 
-CONTEXT, MUST_SAY, MUST_NOT_SAY, NORMS, ELEMENTS = load_checklist()
+CONTEXT, MUST_SAY, MUST_NOT_SAY, NORMS, ELEMENTS, SCRIPTS = load_checklist()
 
 # Перезаписывать уже разобранные встречи (после смены чек-листа), а не пропускать их.
 REDO = os.environ.get("REDO", "").strip().lower() in ("1", "true", "yes")
@@ -152,8 +153,92 @@ SYSTEM_PROMPT = """Ты — методист отдела контроля ка�
     {"id": "<id элемента из списка>", "asked": true|false, "present": true|false, "quote": "", "why": ""}
     // по одному объекту на КАЖДЫЙ элемент из списка, в том же порядке
   ],
+  "client_scores": {
+    "autonomy": число 1-10 или null, "initiative": число 1-10 или null, "belief": число 1-10 или null,
+    "value": число 1-10 или null, "comfort": число 1-10 или null
+    // числа, которые клиент назвал САМ по 10-балльной шкале: автономность команды, инициативность,
+    // вера в команду, насколько программа решает запрос, комфорт / «вижу себя в тренинге». Не называл — null
+  },
   "notes": "что помешало разобрать встречу, если мешало"
 }"""
+
+
+def script_for(manager):
+    """Личный скрипт менеджера из конфига: ключ — часть имени менеджера."""
+    low = (manager or "").lower()
+    for key, sc in (SCRIPTS or {}).items():
+        if key.lower() in low:
+            return dict(sc, key=key)
+    return None
+
+
+def script_prompt(script):
+    if not script:
+        return ""
+    items = [i for i in script.get("items", []) if not i.get("markers")]
+    return ("\n\nЛИЧНЫЙ СКРИПТ МЕНЕДЖЕРА «%s»\n"
+            "Помимо обязательных элементов проверь по каждому пункту скрипта, выполнил ли его менеджер. "
+            "Правила те же: цитата-подтверждение, без цитаты — false, и \"why\" — почему так решил "
+            "(для пунктов «сколько из N» напиши в why, что именно раскрыто).\n"
+            % script.get("name", script.get("key", ""))
+            + "\n".join("- %s — %s. %s" % (i["id"], i["name"], i.get("hint", "")) for i in items)
+            + "\n\nДобавь в JSON поле:\n"
+            "  \"script\": [ {\"id\": \"<id пункта>\", \"done\": true|false, \"quote\": \"\", \"why\": \"\"} ]"
+            "\n  // по одному объекту на КАЖДЫЙ пункт скрипта из списка")
+
+
+def normalize_script(review, script, text):
+    """Пункты скрипта по id. Пункты с фразами-маркерами проверяет код по расшифровке, а не модель."""
+    if not script:
+        review.pop("script", None)
+        review.pop("script_key", None)
+        return review
+    got = {}
+    for c in review.get("script") or []:
+        if isinstance(c, dict) and c.get("id"):
+            got[str(c["id"]).strip()] = c
+    low = (text or "").lower().replace("ё", "е")
+    out = []
+    for it in script.get("items", []):
+        base = {"id": it["id"], "mandatory": bool(it.get("mandatory"))}
+        if it.get("markers"):
+            hit = None
+            for pat in it["markers"]:
+                hit = re.search(pat, low, re.I)
+                if hit:
+                    break
+            q = ""
+            if hit:
+                a, b = max(0, hit.start() - 70), min(len(text), hit.end() + 70)
+                q = "…" + text[a:b].replace("\n", " ").strip() + "…"
+            base.update({"done": bool(hit), "by": "code", "quote": q,
+                         "why": "фраза-маркер найдена в расшифровке" if hit else "фразы-маркера в расшифровке нет"})
+        else:
+            c = got.get(it["id"])
+            if c is None:
+                base.update({"done": None, "by": "model", "quote": "", "why": "модель не вернула ответ по этому пункту"})
+            else:
+                base.update({"done": bool(c.get("done")), "by": "model",
+                             "quote": c.get("quote") or "", "why": c.get("why") or ""})
+        out.append(base)
+    review["script"] = out
+    review["script_key"] = script.get("key", "")
+    return review
+
+
+def script_count(review):
+    items = review.get("script") or []
+    if not items:
+        return ""
+    return "%d из %d" % (sum(1 for x in items if x.get("done") is True), len(items))
+
+
+def client_scores_text(review):
+    cs = review.get("client_scores") or {}
+    if not isinstance(cs, dict):
+        return ""
+    names = [("autonomy", "авт"), ("initiative", "иниц"), ("belief", "вера"), ("value", "ценн"), ("comfort", "комф")]
+    return " · ".join("%s %s" % (n, cs.get(k)) for k, n in names if isinstance(cs.get(k), (int, float)))
 
 
 # ============================================================
@@ -310,7 +395,7 @@ def pick_models(headers):
     return ids
 
 
-def ask_model(models, headers, transcript, metrics):
+def ask_model(models, headers, transcript, metrics, script=None):
     prompt = (
         "Расшифровка встречи (автоматическая, без разметки говорящих):\n\n"
         + transcript
@@ -320,7 +405,7 @@ def ask_model(models, headers, transcript, metrics):
     )
     body = {
         "model": None,
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT},
+        "messages": [{"role": "system", "content": SYSTEM_PROMPT + script_prompt(script)},
                      {"role": "user", "content": prompt}],
         "temperature": 0.2,
         "response_format": {"type": "json_object"},
@@ -364,7 +449,8 @@ OKK_HEADERS = ["дата разбора", "ID сделки", "клиент", "с
                "комитет (раз)", "комитет по трети", "даты и ограниченность", "запрет: каждый месяц",
                "вопросов", "слов", "резюме", "модель", "json",
                "элементы: спросил", "элементы: прозвучало",
-               "менеджер", "дата встречи", "источник", "оборот", "запись zoom", "код доступа"]
+               "менеджер", "дата встречи", "источник", "оборот", "запись zoom", "код доступа",
+               "скрипт: выполнено", "оценки клиента"]
 
 
 def ensure_tab(sheets):
@@ -464,6 +550,9 @@ def locate_quotes(review, words):
     for s in review.get("stages") or []:
         if isinstance(s, dict) and s.get("quote"):
             s["at"] = find(s["quote"])
+    for s in review.get("script") or []:
+        if isinstance(s, dict) and s.get("quote"):
+            s["at"] = find(s["quote"])
     return review
 
 
@@ -498,6 +587,7 @@ def to_row(row, review, metrics, model, stamp, meta=None):
         elements_count(review, "asked"), elements_count(review, "present"),
         meta.get("manager", ""), meta.get("held_at", ""), meta.get("source", ""),
         meta.get("turnover", ""), meta.get("zoom", ""), meta.get("passcode", ""),
+        script_count(review), client_scores_text(review),
     ]
 
 
@@ -575,8 +665,10 @@ def main():
             metrics = hard_metrics(text)
             sent = text if len(text) <= MAX_CHARS else text[:MAX_CHARS // 3] + "\n…\n" + text[-2 * MAX_CHARS // 3:]
             log("[%s] разбор моделью (%d символов)..." % (rid, len(sent)))
-            review, model = ask_model(models, headers, sent, metrics)
+            script = script_for((zoom_meta.get(rid) or {}).get("manager", ""))
+            review, model = ask_model(models, headers, sent, metrics, script)
             review = normalize_checklist(review)
+            review = normalize_script(review, script, text)
 
             fields = dict(zip(OKK_HEADERS, to_row(row, review, metrics, model, stamp, zoom_meta.get(rid))))
             if REDO and rid in done_row:

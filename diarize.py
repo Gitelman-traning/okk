@@ -170,13 +170,38 @@ def measure(dg):
 
     others = [s for s in talk if s != manager]
     client_lines = sum(lines.get(s, 0) for s in others)
+
+    # косвенные замеры «энергии»: темп речи, паузы, вопросы. Критерий не формализован,
+    # это то, что можно честно померить по звуку
+    def wpm(word_count, seconds):
+        return round(word_count / (seconds / 60.0)) if seconds > 30 else None
+    client_words = sum(words.get(s, 0) for s in others)
+    client_time = sum(talk.get(s, 0) for s in others)
+    pauses, gaps, prev_end = 0, [], None
+    for u in sorted(utts, key=lambda x: float(x.get("start", 0))):
+        st, en = float(u.get("start", 0)), float(u.get("end", 0))
+        if prev_end is not None and st - prev_end >= 2.0:
+            pauses += 1
+            gaps.append(st - prev_end)
+        prev_end = en if prev_end is None else max(prev_end, en)
+    q_manager = sum((u.get("transcript") or "").count("?") for u in utts if u.get("speaker") == manager)
+    minutes = total / 60.0
     return {
         "share": share,
         "monolog": "%d:%02d" % (int(longest // 60), int(longest % 60)),
+        "monolog_sec": int(longest),
         "lines": "%d / %d" % (lines.get(manager, 0), client_lines),
+        "lines_manager": lines.get(manager, 0),
+        "lines_client": client_lines,
         "minutes": round(total / 60),
         "how": how,
         "speakers": len(talk),
+        "wpm_manager": wpm(words.get(manager, 0), talk.get(manager, 0)),
+        "wpm_client": wpm(client_words, client_time),
+        "pauses": pauses,
+        "pause_avg": round(sum(gaps) / len(gaps), 1) if gaps else 0,
+        "q_manager": q_manager,
+        "questions_per_min": round(q_manager / minutes, 1) if minutes else 0,
     }
 
 
@@ -233,6 +258,7 @@ def main():
                     review = json.loads(row["json"])
                     alt = ((dg.get("results") or {}).get("channels") or [{}])[0].get("alternatives") or [{}]
                     review = okk.locate_quotes(review, alt[0].get("words") or [])
+                    review["speech"] = m
                     values.update(spreadsheetId=SHEET_ID,
                                   range="'%s'!%s%d" % (OKK_TAB, letter(hdr.index("json")), rownum),
                                   valueInputOption="RAW",
