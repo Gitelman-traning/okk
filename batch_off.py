@@ -78,7 +78,7 @@ def main():
                            range="'%s'!A2:B100000" % okk.OKK_TAB).execute().get("values", [])
     done = {r[1].strip() for r in done_rows if len(r) > 1 and r[1].strip()}
 
-    queue = []
+    queue, skipped = [], []
     for d in zoom_rows(values):
         if MANAGERS and not any(m in d["manager"].lower() for m in MANAGERS):
             continue
@@ -86,8 +86,17 @@ def main():
             continue
         if d["id"] in done and not REDO:
             continue
+        # Zoom без кода доступа запись не отдаёт, а «http://-» значит записи ещё нет
+        if not d["url"].startswith("https://") or "zoom.us" not in d["url"]:
+            skipped.append((d["id"], "записи ещё нет"))
+            continue
+        if not d["passcode"]:
+            skipped.append((d["id"], "пустой код доступа"))
+            continue
         queue.append(d)
     queue.sort(key=lambda d: dkey(d["held_at"]), reverse=True)     # свежие первыми
+    if skipped:
+        log("пропущено %d: %s" % (len(skipped), "; ".join("%s — %s" % s for s in skipped[:20])))
     log("встреч под фильтр: %d, беру %d" % (len(queue), min(len(queue), LIMIT)))
     queue = queue[:LIMIT]
     if not queue:
