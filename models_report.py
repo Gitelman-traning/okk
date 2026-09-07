@@ -11,8 +11,8 @@
 import os
 import requests
 
-OR_URL = "https://openrouter.ai/api/v1/models"
-KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
+OR_URL = (os.environ.get("LLM_BASE_URL", "").strip().rstrip("/") or "https://openrouter.ai/api/v1") + "/models"
+KEY = os.environ.get("LLM_API_KEY", "").strip() or os.environ.get("OPENROUTER_API_KEY", "").strip()
 
 MEETINGS = int(os.environ.get("MEETINGS") or "300")   # диагностик в месяц
 IN_TOK = 13000        # входных токенов на встречу
@@ -46,7 +46,15 @@ def main():
     r = requests.get(OR_URL, headers={"Authorization": "Bearer " + KEY} if KEY else {}, timeout=60)
     r.raise_for_status()
     models = r.json().get("data", [])
+    # у провайдеров без метаданных (ProxyAPI и др.) просто печатаем нужные имена
+    print("Провайдер: %s, моделей: %d" % (OR_URL, len(models)))
+    for key in ("claude", "gpt-5", "gemini", "deepseek", "minimax"):
+        hits = [m["id"] for m in models if key in m.get("id", "").lower()]
+        print("  %-8s %s" % (key, ", ".join(hits[:14]) or "—"))
+    print()
     big = [m for m in models if int(m.get("context_length") or 0) >= MIN_CTX]
+    if not big:
+        return
 
     free = [m for m in big if m["id"].endswith(":free")]
     paid = [m for m in big if not m["id"].endswith(":free") and month_cost(m) > 0]
