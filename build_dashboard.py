@@ -164,31 +164,32 @@ def main():
                    for k, s in (cfg.get("scripts") or {}).items()}
     payload = {"generated": generated, "model": model, "items": items, "manual": manual,
                "elements": elements, "alts": alts, "scripts": scripts}
+    verdict_js = io.open("verdict.js", encoding="utf-8").read()
     tpl = io.open(TPL, encoding="utf-8").read()
     data = json.dumps(payload, ensure_ascii=False)
 
     out_dir = os.path.dirname(OUT)
     if out_dir and not os.path.isdir(out_dir):
         os.makedirs(out_dir)
-    io.open(OUT, "w", encoding="utf-8").write(tpl.replace("/*__DATA__*/", data))
+    io.open(OUT, "w", encoding="utf-8").write(tpl.replace("/*__DATA__*/", data).replace("/*__VERDICT__*/", verdict_js))
 
     stats_out = OUT_STATS or os.path.join(out_dir, "stats.html")
     stats_tpl = io.open(TPL_STATS, encoding="utf-8").read()
-    io.open(stats_out, "w", encoding="utf-8").write(stats_tpl.replace("/*__DATA__*/", data))
+    io.open(stats_out, "w", encoding="utf-8").write(stats_tpl.replace("/*__DATA__*/", data).replace("/*__VERDICT__*/", verdict_js))
 
     charts_out = os.path.join(out_dir, "charts.html")
     charts_tpl = io.open(TPL_CHARTS, encoding="utf-8").read()
-    io.open(charts_out, "w", encoding="utf-8").write(charts_tpl.replace("/*__DATA__*/", data))
+    io.open(charts_out, "w", encoding="utf-8").write(charts_tpl.replace("/*__DATA__*/", data).replace("/*__VERDICT__*/", verdict_js))
 
     for tpl_name, fname in ((TPL_MANAGERS, "managers.html"), (TPL_COMPARE, "compare.html")):
         if os.path.exists(tpl_name):
             page_tpl = io.open(tpl_name, encoding="utf-8").read()
             io.open(os.path.join(out_dir, fname), "w", encoding="utf-8").write(
-                page_tpl.replace("/*__DATA__*/", data))
+                page_tpl.replace("/*__DATA__*/", data).replace("/*__VERDICT__*/", verdict_js))
 
     guide_out = os.path.join(out_dir, "guide.html")
     guide_tpl = io.open(TPL_GUIDE, encoding="utf-8").read()
-    io.open(guide_out, "w", encoding="utf-8").write(guide_tpl.replace("/*__DATA__*/", data))
+    io.open(guide_out, "w", encoding="utf-8").write(guide_tpl.replace("/*__DATA__*/", data).replace("/*__VERDICT__*/", verdict_js))
 
     managers = len({i["mgr"] for i in items if i["mgr"]})
     print("готово: %s и %s, встреч %d, менеджеров %d, модель %s"

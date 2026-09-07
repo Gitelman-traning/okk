@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Разбор диагностик</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -261,6 +262,25 @@ th .hint:hover{background:var(--gold-soft);color:var(--gold)}
 .pop p{margin:0 0 10px}
 .pop a{display:inline-block;font-size:12.5px;font-weight:600;color:var(--gold);text-decoration:none}
 .pop a:hover{text-decoration:underline}
+
+/* лента вердиктов */
+.feed{display:flex;flex-direction:column;gap:10px}
+.fr{display:grid;grid-template-columns:6px 200px 150px 1fr 230px 100px;gap:16px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);cursor:pointer}
+.fr:hover{background:var(--zebra)} .fr.open{background:var(--card);border-color:var(--gold-a)} .fr:focus-visible{outline:2px solid var(--gold-b)}
+.fbar{width:6px;height:44px;border-radius:4px;background:var(--faint)} .lvl-bad .fbar{background:var(--bad)} .lvl-mid .fbar{background:var(--mid)} .lvl-ok .fbar{background:var(--ok)}
+.fwho b{display:block;font-size:13.5px;font-weight:600} .fwho small{display:block;color:var(--faint);font-size:12px}
+.fverdict{font-weight:700;font-size:15px} .lvl-bad .fverdict{color:var(--bad)} .lvl-mid .fverdict{color:var(--mid)} .lvl-ok .fverdict{color:var(--ok)}
+.fverdict small{display:block;font-weight:400;color:var(--dim);font-size:12px}
+.fgap{font-size:12.5px;color:var(--dim);min-width:0} .fgap b{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.03em;font-weight:600}
+.lvl-bad .fgap.fmain b,.lvl-mid .fgap.fmain b{color:var(--bad)}
+.fopen{color:var(--gold);font-weight:600;font-size:12.5px;text-align:right;white-space:nowrap}
+.fdetail{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;padding:12px 0 4px;border-top:1px solid var(--line);margin-top:4px;cursor:default}
+.fdetail h4{margin:0 0 5px;font-size:11px;color:var(--faint);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.fdetail p,.fdetail ul{margin:0;font-size:13px;color:var(--dim);line-height:1.5} .fdetail ul{padding-left:16px}
+.fdetail .flinks{margin-top:8px} .fdetail .flinks a{color:var(--gold);font-weight:600;margin-right:12px;text-decoration:none}
+.fdetail .flinks a.full{color:var(--ink)}
+@media (max-width:1000px){.fr{grid-template-columns:6px 1fr 130px 90px}.fgap{display:none}.fdetail{grid-template-columns:1fr}}
+.feed{padding:0 22px 22px}
 </style>
 
 <div class="layout">
@@ -318,36 +338,13 @@ th .hint:hover{background:var(--gold-soft);color:var(--gold)}
     </select>
     <label class="toggle"><input type="checkbox" id="fp"> только с красной зоной</label>
     <label class="toggle"><input type="checkbox" id="fd"> без даты в следующем шаге</label>
+    <label for="fo">Порядок</label>
+    <select id="fo"><option value="risk">проблемные первыми</option><option value="date">по дате</option></select>
     <div class="spacer"></div>
     <span class="count" id="count"></span>
   </div>
 
-  <div class="tablebox">
-    <table id="grid">
-      <thead>
-        <tr>
-          <th class="c1" data-sort="held">Когда<button type="button" class="hint" data-hint="held" aria-label="Что это за колонка">?</button></th>
-          <th class="c2" data-sort="client">Клиент<button type="button" class="hint" data-hint="client" aria-label="Что это за колонка">?</button></th>
-          <th data-sort="mgr">Менеджер<button type="button" class="hint" data-hint="mgr" aria-label="Что это за колонка">?</button></th>
-          <th>Ссылки<button type="button" class="hint" data-hint="links" aria-label="Что это за колонка">?</button></th>
-          <th data-sort="goal">Цель встречи<button type="button" class="hint" data-hint="goal" aria-label="Что это за колонка">?</button></th>
-          <th data-sort="achieved">Цель достигнута<button type="button" class="hint" data-hint="achieved" aria-label="Что это за колонка">?</button></th>
-          <th data-sort="prob">Вер.<button type="button" class="hint" data-hint="prob" aria-label="Что это за колонка">?</button></th>
-          <th class="group" data-sort="s0">Контакт<button type="button" class="hint" data-hint="s0" aria-label="Что это за колонка">?</button></th>
-          <th class="group" data-sort="s1">Потребн.<button type="button" class="hint" data-hint="s1" aria-label="Что это за колонка">?</button></th>
-          <th class="group" data-sort="s2">Презент.<button type="button" class="hint" data-hint="s2" aria-label="Что это за колонка">?</button></th>
-          <th class="group" data-sort="s3">Возраж.<button type="button" class="hint" data-hint="s3" aria-label="Что это за колонка">?</button></th>
-          <th class="group" data-sort="s4">Фиксация<button type="button" class="hint" data-hint="s4" aria-label="Что это за колонка">?</button></th>
-          <th data-sort="komitet">Комитет<button type="button" class="hint" data-hint="komitet" aria-label="Что это за колонка">?</button></th>
-          <th data-sort="scarcity">Даты и дефицит<button type="button" class="hint" data-hint="scarcity" aria-label="Что это за колонка">?</button></th>
-          <th data-sort="questions">Вопросов<button type="button" class="hint" data-hint="questions" aria-label="Что это за колонка">?</button></th>
-          <th data-sort="next">Следующий шаг<button type="button" class="hint" data-hint="next" aria-label="Что это за колонка">?</button></th>
-          <th>Флаги<button type="button" class="hint" data-hint="flags" aria-label="Что это за колонка">?</button></th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
-  </div>
+  <div class="feed" id="rows"></div>
 
   <footer id="foot">—</footer>
 </div>
@@ -482,11 +479,52 @@ var HINTS = {
   }, true);
   document.addEventListener("keydown",function(e){if(e.key==="Escape")close()});
   window.addEventListener("resize",close);
-  document.querySelector(".tablebox").addEventListener("scroll",close);
+  var tb=document.querySelector(".tablebox"); if(tb) tb.addEventListener("scroll",close);
 })();
 
 var PAYLOAD = /*__DATA__*/;
 var DATA = PAYLOAD.items;
+/*__VERDICT__*/
+
+/* строка ленты: вердикт, главный пропуск, раскрытие на месте */
+function feedRow(d,i,showMgr){
+  var v=verdictOf(d);
+  var links=(d.amo?'<a href="'+esc(d.amo)+'" target="_blank" rel="noopener">сделка в amo</a>':'')+(d.zoom?'<a href="'+esc(d.zoom)+'" target="_blank" rel="noopener">запись</a>':'');
+  var facts=[d.prob!=null?"вероятность "+d.prob+"%":"", typeof d.speech==="number"?"речь менеджера "+d.speech+"%":"", "«комитет» "+(d.komitet||0)].filter(Boolean).join(" · ");
+  var why=v.red.length?'<ul>'+v.red.slice(0,4).map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul>':'<p>'+esc(v.why||v.summary||"—")+'</p>';
+  var isRef=/эталон/i.test(d.client||"");
+  return '<div class="fr lvl-'+v.level+'" data-i="'+i+'" tabindex="0">'
+    +'<div class="fbar"></div>'
+    +'<div class="fwho"><b>'+esc(d.client||"—")+(isRef?' <span class="pill ref">эталон</span>':'')+'</b><small>'+esc(d.held||"—")+(showMgr&&d.mgr?" · "+esc(d.mgr):"")+'</small></div>'
+    +'<div class="fverdict">'+v.word+'<small>цель '+esc(String(d.achieved||"—").toLowerCase())+(v.score!=null?' · '+v.score+' баллов':'')+'</small></div>'
+    +'<div class="fgap fmain"><b>'+(v.level==="ok"?"что улучшить":"главный пропуск")+'</b>'+esc(v.main||v.advice||"—")+'</div>'
+    +'<div class="fgap fmeta"><b>цифры</b>'+esc(facts)+'</div>'
+    +'<div class="fopen">подробнее ↓</div>'
+    +'<div class="fdetail" hidden>'
+    +'<div><h4>'+(v.red.length?'Красная зона':'Почему такой вердикт')+'</h4>'+why+'</div>'
+    +'<div><h4>'+(v.scores.length?'Оценки клиента, назвал сам':'Обязательные элементы')+'</h4><p>'+(v.scores.length?esc(v.scores.join(" · ")):(v.elTot?'прозвучало '+v.elPres+' из '+v.elTot:'—'))+'</p>'
+    +(v.scores.length&&v.elTot?'<p>элементы: прозвучало '+v.elPres+' из '+v.elTot+'</p>':'')+'</div>'
+    +'<div><h4>Один совет менеджеру</h4><p>'+esc(v.advice||"—")+'</p><p class="flinks"><a href="#" class="full" data-i="'+i+'">полный разбор →</a>'+links+'</p></div>'
+    +'</div></div>';
+}
+function feedToggle(fr){
+  var det=fr.querySelector(".fdetail"); det.hidden=!det.hidden;
+  fr.classList.toggle("open",!det.hidden);
+  fr.querySelector(".fopen").textContent=det.hidden?"подробнее ↓":"свернуть ↑";
+}
+function wireFeed(box){
+  box.addEventListener("click",function(e){
+    var full=e.target.closest("a.full"); if(full){e.preventDefault();openRow(+full.getAttribute("data-i"));return}
+    if(e.target.closest("a")) return;
+    if(e.target.closest(".fdetail")) return;
+    var fr=e.target.closest(".fr"); if(fr) feedToggle(fr);
+  });
+  box.addEventListener("keydown",function(e){
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    if(e.target.closest("input,button,a"))return;
+    var fr=e.target.closest(".fr"); if(fr){e.preventDefault();feedToggle(fr)}
+  });
+}
 var STAGE_NAMES = {contact:"Установление контакта", needs:"Выявление потребностей",
   present:"Презентация", objections:"Отработка возражений", close:"Фиксация договорённостей"};
 var STAGE_KEYS = ["contact","needs","present","objections","close"];
@@ -509,7 +547,7 @@ document.getElementById("stamp").textContent = "прогон " + PAYLOAD.generat
 document.getElementById("foot").innerHTML =
   "Счётчики обязательных элементов, вопросы и объём считает код. Оценки этапов, резюме и следующий шаг — модель "
   + esc(PAYLOAD.model) + ", каждая оценка привязана к цитате из расшифровки. "
-  + "Доля речи менеджера пока не считается: расшифровки сделаны без разделения говорящих.";
+  + "Вердикт и балл встречи считаются по одной формуле для всех: цель, обязательные элементы, этапы, речь; красная зона перекрывает балл.";
 
 /* сводка */
 (function(){
@@ -534,72 +572,27 @@ document.getElementById("foot").innerHTML =
 
 var tbody=document.getElementById("rows"), sortKey="held", sortDir=-1, view=[];
 
-function rowHtml(d,i){
-  var sc=d.s.map(function(v){
-    var bar=(v==null)?"":'<span class="mini"><i style="width:'+v+'%;background:'
-      +(v>=75?"var(--ok-bar)":v>=55?"var(--mid-bar)":"var(--bad-bar)")+'"></i></span>';
-    return '<td class="sc '+cls(v)+'">'+bar+(v==null?"—":v)+'</td>';
-  }).join("");
-  var flags="";
-  if(!d.next_date) flags+='<span class="flag">нет даты</span>';
-  if(d.s[4]!=null&&d.s[4]<40) flags+='<span class="flag">не закрыл</span>';
-  if(!d.komitet) flags+='<span class="flag">без комитета</span>';
-  var links="";
-  if(d.amo) links+='<a href="'+esc(d.amo)+'" target="_blank" rel="noopener">сделка</a> ';
-  if(d.zoom) links+='<a href="'+esc(d.zoom)+'" target="_blank" rel="noopener">запись</a>';
-  return '<tr data-i="'+i+'" tabindex="0">'
-    +'<td class="c1">'+esc(d.held||"—")+'</td>'
-    +'<td class="c2">'+esc(d.client||"—")+'</td>'
-    +'<td>'+esc(d.mgr||"—")+'</td>'
-    +'<td>'+(links||"—")+'</td>'
-    +'<td class="clip">'+esc(d.goal)+'</td>'
-    +'<td>'+goalPill(d.achieved)+'</td>'
-    +'<td class="num">'+(d.prob==null?"—":d.prob+"%")+'</td>'
-    +sc
-    +'<td class="num">'+d.komitet+'</td>'
-    +'<td>'+(d.scarcity?'<span class="pill ok">да</span>':'<span class="pill bad">нет</span>')+'</td>'
-    +'<td class="num">'+d.questions+'</td>'
-    +'<td class="clip">'+esc(d.next)+'</td>'
-    +'<td>'+flags+'</td></tr>';
-}
-
 function apply(){
   var fm=document.getElementById("fm").value,
       fs=document.getElementById("fs").value,
       fp=document.getElementById("fp").checked,
-      fd=document.getElementById("fd").checked;
-  view=DATA.map(function(d,i){return {d:d,i:i}}).filter(function(x){
+      fd=document.getElementById("fd").checked,
+      fo=document.getElementById("fo").value;
+  view=DATA.map(function(d,i){return {d:d,i:i,v:verdictOf(d)}}).filter(function(x){
     var d=x.d;
     if(fm && d.mgr!==fm) return false;
     if(fs && d.achieved!==fs) return false;
-    if(fp && !d.s.some(function(v){return v!=null&&v<55})) return false;
+    if(fp && !x.v.red.length) return false;
     if(fd && d.next_date) return false;
     return true;
   });
-  view.sort(function(a,b){
-    var k=sortKey,A,B;
-    if(k==="held"){A=dateKey(a.d.held);B=dateKey(b.d.held)}
-    else if(k.charAt(0)==="s"&&k.length===2){A=a.d.s[+k.charAt(1)];B=b.d.s[+k.charAt(1)]}
-    else if(k==="prob"||k==="questions"||k==="komitet"){A=a.d[k];B=b.d[k]}
-    else if(k==="scarcity"){A=a.d.scarcity?1:0;B=b.d.scarcity?1:0}
-    else {A=String(a.d[k]||"");B=String(b.d[k]||"")}
-    if(A==null)A=-1; if(B==null)B=-1;
-    return A>B?sortDir:A<B?-sortDir:0;
-  });
-  tbody.innerHTML=view.map(function(x){return rowHtml(x.d,x.i)}).join("");
-  document.getElementById("count").textContent="встреч в списке: "+view.length;
+  if(fo==="date"){ view.sort(function(a,b){var A=dateKey(a.d.held),B=dateKey(b.d.held);return A>B?-1:A<B?1:0}); }
+  else { view.sort(function(a,b){return verdictRank(a.v)-verdictRank(b.v)||(dateKey(b.d.held)>dateKey(a.d.held)?1:-1)}); }
+  tbody.innerHTML=view.map(function(x){return feedRow(x.d,x.i,true)}).join("");
+  var bad=view.filter(function(x){return x.v.level==="bad"}).length, mid=view.filter(function(x){return x.v.level==="mid"}).length;
+  document.getElementById("count").textContent="встреч в списке: "+view.length+" · провалов "+bad+" · рисков "+mid;
 }
-
-document.querySelectorAll("thead th[data-sort]").forEach(function(th){
-  th.addEventListener("click",function(){
-    var k=th.getAttribute("data-sort");
-    if(sortKey===k){sortDir=-sortDir}else{sortKey=k;sortDir=(k==="client"||k==="goal"||k==="next")?1:-1}
-    document.querySelectorAll("thead th").forEach(function(t){t.removeAttribute("aria-sort")});
-    th.setAttribute("aria-sort",sortDir===1?"ascending":"descending");
-    apply();
-  });
-});
-["fm","fs","fp","fd"].forEach(function(id){document.getElementById(id).addEventListener("change",apply)});
+["fm","fs","fp","fd","fo"].forEach(function(id){document.getElementById(id).addEventListener("change",apply)});
 
 var modal=document.getElementById("modal");
 var current=-1;
@@ -779,14 +772,7 @@ document.addEventListener("keydown",function(e){
   if(e.key==="ArrowLeft") step(-1);
   if(e.key==="ArrowRight") step(1);
 });
-tbody.addEventListener("click",function(e){
-  if(e.target.closest("a")) return;          // клик по ссылке — уходим по ней, окно не трогаем
-  var tr=e.target.closest("tr"); if(tr) openRow(+tr.getAttribute("data-i"));
-});
-tbody.addEventListener("keydown",function(e){
-  if(e.key!=="Enter"&&e.key!==" ")return;
-  var tr=e.target.closest("tr"); if(tr){e.preventDefault();openRow(+tr.getAttribute("data-i"))}
-});
+wireFeed(tbody);
 
 (function(){
   var sel=document.getElementById("fm"), seen={};
@@ -796,7 +782,6 @@ tbody.addEventListener("keydown",function(e){
   });
 })();
 apply();
-document.querySelector('thead th[data-sort="held"]').setAttribute("aria-sort","descending");
 /* переход со страницы менеджера: открываем нужную встречу сразу */
 (function(){
   var q=new URLSearchParams(location.search);

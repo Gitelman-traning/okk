@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Сверка оценок</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -102,6 +103,23 @@ details.why p.na{color:var(--faint);font-style:italic}
 td.agree{background:var(--ok-bg)} td.disagree{background:var(--bad-bg)}
 .block.wide{overflow-x:auto} table.els td{min-width:170px} table.els td.k{min-width:220px}
 .brow .lg{font-size:11.5px;color:var(--faint);text-align:center}
+
+/* вариант A: вердикт сверху, остальное аккордеоном */
+.a-head{display:grid;grid-template-columns:120px 120px 1fr 300px;gap:22px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--line)}
+@media (max-width:1100px){.a-head{grid-template-columns:100px 100px 1fr}.a-red{grid-column:1/-1}}
+.a-score{text-align:center}.a-score .n{font-size:50px;font-weight:700;line-height:1;color:var(--ink)}.a-score .l{font-size:11.5px;color:var(--faint);margin-top:6px}
+.a-title h2{margin:0 0 2px;font-size:18px;font-weight:600}.a-title small{color:var(--faint);font-size:12.5px}.a-title .verdict{margin:8px 0 0;font-size:13.5px;color:var(--dim)}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:8px;margin-right:6px}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.mid{background:var(--mid-bg);color:var(--mid)}.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.a-red{border-radius:12px;padding:12px 14px;background:var(--bad-bg)}.lvl-ok .a-red{background:var(--ok-bg)}.lvl-mid .a-red{background:var(--mid-bg)}
+.a-red b{display:block;font-size:11px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em;color:var(--bad)}.lvl-ok .a-red b{color:var(--ok)}.lvl-mid .a-red b{color:var(--mid)}
+.a-red ul{margin:0;padding-left:16px}.a-red li,.a-red p{font-size:12.5px;margin:2px 0;color:var(--ink)}
+.acc details{border-bottom:1px solid var(--line)}.acc details:last-child{border-bottom:0}
+.acc summary{padding:12px 4px;cursor:pointer;font-weight:600;font-size:13.5px;display:flex;justify-content:space-between;gap:12px;list-style:none;user-select:none}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:"▾";color:var(--faint);flex:none}.acc details[open] summary::after{content:"▴"}
+.acc summary .meta{font-weight:400;color:var(--faint);font-size:12.5px;text-align:right}
+.acc .acc-body{padding:0 4px 16px}
 .duos{display:grid;gap:12px;margin-top:4px}
 .duo .lbl{font-size:12.5px;color:var(--dim);margin-bottom:4px}
 .duo .stack{display:flex;height:20px;border-radius:6px;overflow:hidden;background:var(--soft)}
@@ -160,7 +178,7 @@ footer{padding:8px 24px 30px;font-size:12px;color:var(--faint)}
   <div class="intro">
     <div>
       <h2>Зачем это</h2>
-      <p>Две эталонные встречи Камиллы — те, по которым она сама написала разбор. Их посмотрел человек по листу оценки, и по одной и той же расшифровке их разобрали несколько моделей. Ниже — все разборы рядом, по колонке на модель. Интересуют расхождения: где модель разошлась с человеком — там либо она слепа, либо критерий описан не так, как его понимает человек. А где модели разошлись между собой — там критерий двусмысленный.</p>
+      <p>Две эталонные встречи Камиллы — те, по которым она сама написала разбор. Их посмотрел человек по листу оценки, и по одной и той же расшифровке их разобрали несколько моделей. Сверху у каждой встречи — вердикт: балл человека, балл системы и список расхождений. Всё остальное раскрывается по клику. Интересуют расхождения: где модель разошлась с человеком — там либо она слепа, либо критерий описан не так, как его понимает человек. А где модели разошлись между собой — там критерий двусмысленный.</p>
       <div class="who" id="who"></div>
     </div>
     <div>
@@ -192,6 +210,7 @@ paint(read()||"auto");document.querySelector(".themer").addEventListener("click"
 
 var PAYLOAD = /*__DATA__*/;
 var MANUAL = PAYLOAD.manual || {meetings:[], must_labels:[]};
+/*__VERDICT__*/
 var STAGES = ["Установление контакта","Выявление потребностей","Презентация","Отработка возражений","Фиксация договорённостей"];
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function gapCls(d){d=Math.abs(d);return d>=30?"big":d>=15?"mid":"ok"}
@@ -202,7 +221,6 @@ document.getElementById("stamp").textContent="прогон "+PAYLOAD.generated;
 var NAMES={"anthropic/claude-opus-5":"Claude Opus 5","anthropic/claude-sonnet-5":"Claude Sonnet 5","openai/gpt-5":"GPT-5",
   "minimax/minimax-m3:free":"MiniMax M3 · бесплатная","minimax/minimax-m2.7:free":"MiniMax M2.7 · бесплатная"};
 function label(id){ if(!id) return "система"; if(NAMES[id]) return NAMES[id]; return id.split("/").pop(); }
-
 function findSys(client){
   return PAYLOAD.items.find(function(d){return d.client===client}) ||
          PAYLOAD.items.find(function(d){return d.client && client && d.client.split(" ")[0]===client.split(" ")[0]});
@@ -227,6 +245,15 @@ function chkOf(d){
   return (PAYLOAD.elements||[]).map(function(e){var c=byId[e.id]||null; return (c&&c.present==null)?null:c;});
 }
 function avg(arr){var v=arr.filter(function(x){return typeof x==="number"});return v.length?Math.round(v.reduce(function(a,b){return a+b},0)/v.length):null}
+/* балл человека по той же формуле, что и у системы: собираем из листа оценки псевдо-разбор */
+function humanItem(m){
+  var els=PAYLOAD.elements||[];
+  return {achieved:m.achieved, s:m.stages.map(function(v){return v*25}), speech:100-m.client_share, komitet:m.komitet, next_date:true, banned:false,
+    review:{checklist:els.map(function(e,i){return {id:e.id, present:!!m.must[i], asked:!!m.must[i]}})}};
+}
+function acc(title,meta,body,open){
+  return '<details'+(open?' open':'')+'><summary><span>'+title+'</span><span class="meta">'+(meta||"")+'</span></summary><div class="acc-body">'+body+'</div></details>';
+}
 
 var html="";
 var allGaps=[];            // {model, meeting, stage, d}
@@ -240,21 +267,22 @@ MANUAL.meetings.forEach(function(m){
   var link = base.deal_id ? 'index.html?deal='+encodeURIComponent(base.deal_id) : 'index.html?client='+encodeURIComponent(base.client);
   var n=sys.length;
   var thSys=sys.map(function(s){return '<th class="num">'+esc(s.name)+'</th>'}).join("");
+  var hv=verdictOf(humanItem(m)), sv=verdictOf(base);
 
-  // этапы
+  // ---- этапы
   var rows="";
   m.stages.forEach(function(v,i){
     var h=v*25;
     rows+='<tr><td class="k">'+STAGES[i]+'</td><td class="num">'+h+'</td>'
       +sys.map(function(s){
-        var sv=s.d.s[i]; if(sv==null) return '<td class="num">—</td>';
-        var d=h-sv; allGaps.push({model:s.id,meeting:m.client,stage:STAGES[i],d:d}); bump(s.id).gaps.push(Math.abs(d));
-        return '<td class="num">'+sv+' <span class="gap '+gapCls(d)+'">'+signed(d)+'</span></td>';
+        var sv2=s.d.s[i]; if(sv2==null) return '<td class="num">—</td>';
+        var d=h-sv2; allGaps.push({model:s.id,meeting:m.client,stage:STAGES[i],d:d}); bump(s.id).gaps.push(Math.abs(d));
+        return '<td class="num">'+sv2+' <span class="gap '+gapCls(d)+'">'+signed(d)+'</span></td>';
       }).join("")+'</tr>';
   });
   var manualAvg=Math.round(m.stages.reduce(function(a,b){return a+b},0)*25/m.stages.length);
 
-  // замеры — их считает код, они одни на все модели
+  // ---- замеры — их считает код, они одни на все модели
   var sysClient = (typeof base.speech==="number") ? (100-base.speech) : null;
   var mrows=[
     ["Клиент говорил, %", m.client_share, sysClient, sysClient==null?null:m.client_share-sysClient, "по таймингу реплик"],
@@ -268,21 +296,22 @@ MANUAL.meetings.forEach(function(m){
       +'<td class="gap '+(r[3]==null?"":gapCls(r[3]))+'">'+(r[3]==null?"—":signed(r[3]))+'</td></tr>';
   }).join("");
 
-  // итог
+  // ---- итог
+  var goalMatch=0;
   var out='<tr><td class="k">Цель достигнута</td><td>'+esc(m.achieved)+'</td>'
-    +sys.map(function(s){var ok=s.d.achieved===m.achieved; var sc=bump(s.id); sc.goals++; if(ok)sc.goalOk++;
+    +sys.map(function(s){var ok=s.d.achieved===m.achieved; var sc=bump(s.id); sc.goals++; if(ok){sc.goalOk++;goalMatch++}
       return '<td class="'+(ok?"agree":"disagree")+'">'+esc(s.d.achieved||"—")+'</td>'}).join("")+'</tr>'
     +'<tr><td class="k">Вероятность сделки</td><td class="num">'+m.prob+'%</td>'
     +sys.map(function(s){var p=s.d.prob; if(p==null) return '<td class="num">—</td>'; bump(s.id).probGap.push(Math.abs(m.prob-p));
       return '<td class="num">'+p+'% <span class="gap '+gapCls(m.prob-p)+'">'+signed(m.prob-p)+'</span></td>'}).join("")+'</tr>';
 
-  // доля речи: на слух против записи, и косвенные замеры энергии
+  // ---- доля речи и энергия
   var sp=(base.review&&base.review.speech)||null;
   var speechBlock="", energyBlock="";
   if(sp||typeof base.speech==="number"){
     var mShare=sp?sp.share:base.speech, cShare=100-mShare;
     var ln=String(sp?sp.lines:(base.lines||"")).split("/"); var lm=parseInt(ln[0])||0, lc=parseInt(ln[1])||0, lt=(lm+lc)||1;
-    function duo(label,a,b,ta,tb,note){return '<div class="duo"><div class="lbl">'+label+' <span class="note-s">'+note+'</span></div>'
+    function duo(lbl,a,b,ta,tb,note){return '<div class="duo"><div class="lbl">'+lbl+' <span class="note-s">'+note+'</span></div>'
       +'<div class="stack"><i class="m" style="width:'+a+'%"></i><i class="c" style="width:'+b+'%"></i></div>'
       +'<div class="vals"><span>менеджер '+ta+'</span><span>клиент '+tb+'</span></div></div>'}
     speechBlock='<div class="block"><h3>Доля речи: на слух и по записи</h3><div class="duos">'
@@ -303,15 +332,16 @@ MANUAL.meetings.forEach(function(m){
     energyBlock='<div class="block"><h3>Энергия: косвенные замеры по аудио</h3><p class="expl">Темп речи, паузы и вопросы в минуту считаются при диаризации — по этой встрече её надо прогнать заново.</p></div>';
   }
 
-  // обязательные элементы: человек ставил «да», если элемент был в диалоге — сравниваем с «прозвучало»
+  // ---- обязательные элементы: человек ставил «да», если элемент был в диалоге — сравниваем с «прозвучало»
   var chks=sys.map(function(s){return chkOf(s.d)});
   var agree=sys.map(function(){return 0}), checked=sys.map(function(){return 0});
+  var disagreeMain=[];   // расхождения с основной моделью — в красную зону
   var must=(MANUAL.must_labels||[]).map(function(lbl,i){
     var h=m.must[i]; var note=(m.must_notes||{})[String(i+1)];
     var cells=sys.map(function(s,j){
       var c=chks[j][i];
       if(!c) return '<td><span class="na">не проверяет</span></td>';
-      checked[j]++; var same=(!!c.present===!!h); if(same) agree[j]++;
+      checked[j]++; var same=(!!c.present===!!h); if(same) agree[j]++; else if(j===0) disagreeMain.push({i:i,label:lbl,h:h,c:c});
       return '<td class="'+(same?"agree":"disagree")+'">'
         +'<span class="'+(c.asked?"yes":"no")+'">спросил: '+(c.asked?"да":"нет")+'</span>'
         +' · <span class="'+(c.present?"yes":"no")+'">прозвучало: '+(c.present?"да":"нет")+'</span>'
@@ -328,31 +358,42 @@ MANUAL.meetings.forEach(function(m){
   var totals='<tr><td class="k"><b>Совпало с человеком</b></td><td class="num">'+yes+' из '+m.must.length+' «да»</td>'
     +sys.map(function(s,j){return '<td class="num"><b>'+agree[j]+' из '+checked[j]+'</b></td>'}).join("")+'</tr>';
 
-  // полоски: средний балл этапов у человека и у каждой модели
-  var cols='150px repeat('+(n+1)+',1fr)';
-  var barAvg='<div class="brow" style="grid-template-columns:'+cols+'"><span class="nm">Средний балл этапов</span>'
-    +'<div class="bar"><i style="width:'+manualAvg+'%;background:var(--gold-b)"></i><b>'+manualAvg+'</b></div>'
-    +sys.map(function(s){var a=avg(s.d.s);return '<div class="bar"><i style="width:'+(a||0)+'%;background:var(--mid-bar)"></i><b>'+(a==null?"—":a)+'</b></div>'}).join("")+'</div>';
-  var barProb='<div class="brow" style="grid-template-columns:'+cols+'"><span class="nm">Вероятность сделки</span>'
-    +'<div class="bar"><i style="width:'+m.prob+'%;background:var(--gold-b)"></i><b>'+m.prob+'%</b></div>'
-    +sys.map(function(s){var p=s.d.prob;return '<div class="bar"><i style="width:'+(p||0)+'%;background:var(--mid-bar)"></i><b>'+(p==null?"—":p+"%")+'</b></div>'}).join("")+'</div>';
-  var legend='<div class="brow" style="grid-template-columns:'+cols+'"><span></span><span class="lg">человек</span>'
-    +sys.map(function(s){return '<span class="lg">'+esc(s.name)+'</span>'}).join("")+'</div>';
+  // ---- красная зона сверки: где основная модель разошлась с человеком сильнее всего
+  var red=[];
+  if(base.achieved!==m.achieved) red.push("цель: человек «"+m.achieved+"», система «"+(base.achieved||"—")+"»");
+  m.stages.forEach(function(v,i){var d=v*25-(base.s[i]==null?v*25:base.s[i]); if(Math.abs(d)>=30) red.push(STAGES[i]+": разрыв "+signed(d))});
+  disagreeMain.slice(0,4).forEach(function(x){red.push((x.i+1)+". "+x.label+" — человек «"+(x.h?"да":"нет")+"», модель «"+(x.c.present?"да":"нет")+"»"+(x.c.at?" ⏱ "+x.c.at:""))});
+  var agreePct=checked[0]?Math.round(100*agree[0]/checked[0]):null;
+  var matchLevel=(red.length===0)?"ok":(red.length<=3&&agreePct!=null&&agreePct>=70)?"mid":"bad";
+  var matchWord={ok:"Сходится",mid:"Расходится по мелочам",bad:"Расходится"}[matchLevel];
 
-  html+='<div class="meet"><div class="head"><h2>'+esc(m.client)+'</h2><span>'+esc(m.held)+' · Камилла Пацкевич · моделей: '+n+'</span>'
-    +'<a href="'+link+'">открыть машинный разбор →</a></div>'
-    +'<div class="bars">'+legend+barAvg+barProb+'</div>'
-    +'<div class="grid">'
-    +'<div class="block wide"><h3>Этапы встречи</h3><table><thead><tr><th>Этап</th><th class="num">Человек</th>'+thSys+'</tr></thead><tbody>'+rows+'</tbody></table>'
-    +'<h3 style="margin-top:16px">Итог</h3><table><thead><tr><th></th><th>Человек</th>'+thSys.replace(/class="num"/g,"")+'</tr></thead><tbody>'+out+'</tbody></table></div>'
-    +'<div class="block"><h3>Замеры</h3><table><thead><tr><th>Что</th><th class="num">На слух</th><th class="num">По расшифровке</th><th class="num">Разница</th></tr></thead><tbody>'+meas+'</tbody></table></div>'
+  // ---- оценки клиента (основная модель)
+  var csb="";
+  if(sv.scores.length) csb='<p style="margin:0;font-size:13.5px">'+esc(sv.scores.join(" · "))+'</p><p class="expl">Числа, которые клиент назвал сам по 10-балльной шкале — их видит основная модель.</p>';
+
+  html+='<div class="meet lvl-'+matchLevel+'">'
+    +'<div class="a-head">'
+      +'<div class="a-score"><div class="n" style="color:var(--gold)">'+(hv.score==null?"—":hv.score)+'</div><div class="l">человек</div></div>'
+      +'<div class="a-score"><div class="n">'+(sv.score==null?"—":sv.score)+'</div><div class="l">'+esc(sys[0].name)+'</div></div>'
+      +'<div class="a-title"><h2>'+esc(m.client)+'</h2><small>'+esc(m.held)+' · Камилла Пацкевич · моделей в сверке: '+n+' · <a href="'+link+'">машинный разбор →</a></small>'
+        +'<p class="verdict"><span class="pill '+matchLevel+'">'+matchWord+'</span> элементы совпали '+(agreePct==null?"—":agreePct+"%")+' · цель '+(base.achieved===m.achieved?"совпала":"разошлась")+' · вероятность '+m.prob+'% против '+(base.prob==null?"—":base.prob+"%")+'</p></div>'
+      +'<div class="a-red"><b>'+(red.length?'Где разошлись':'Расхождений нет')+'</b>'+(red.length?'<ul>'+red.slice(0,5).map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul>':'<p>Основная модель совпала с человеком по цели, этапам и элементам.</p>')+'</div>'
     +'</div>'
-    +((speechBlock||energyBlock)?'<div class="grid3">'+speechBlock+energyBlock+'</div>':'')
-    +'<div class="block wide"><h3>Обязательные элементы · зелёная ячейка — модель совпала с человеком по «прозвучало», красная — разошлась</h3>'
-    +'<table class="els"><thead><tr><th>Элемент</th><th>Человек</th>'+thSys.replace(/class="num"/g,"")+'</tr></thead><tbody>'+must+totals+'</tbody></table></div>'
-    +'<div class="block"><h3>Что улучшить, по мнению человека</h3><p style="margin:0;font-size:13.5px">'+esc((m.improve||[]).join("; "))+'</p>'
-    +(m.quote?'<p style="margin:6px 0 0;font-size:12.5px;color:var(--faint)">Цитата, решившая исход: «'+esc(m.quote)+'»</p>':"")+'</div>'
-    +'</div>';
+    +'<div class="acc">'
+    +acc("Обязательные элементы", "человек "+yes+" из "+m.must.length+" · "+sys.map(function(s,j){return esc(s.name)+" "+agree[j]+"/"+checked[j]}).join(" · "),
+        '<div class="block wide"><p class="expl" style="margin:0 0 10px">Зелёная ячейка — модель совпала с человеком по «прозвучало», красная — разошлась. Раскрытие «почему» показывает объяснение модели и цитату с временем в записи.</p>'
+        +'<table class="els"><thead><tr><th>Элемент</th><th>Человек</th>'+thSys.replace(/class="num"/g,"")+'</tr></thead><tbody>'+must+totals+'</tbody></table></div>', red.length>0)
+    +acc("Этапы и итог", "средний балл этапов: человек "+manualAvg+" · "+sys.map(function(s){return esc(s.name)+" "+(avg(s.d.s)==null?"—":avg(s.d.s))}).join(" · "),
+        '<div class="block wide"><table><thead><tr><th>Этап</th><th class="num">Человек</th>'+thSys+'</tr></thead><tbody>'+rows+'</tbody></table>'
+        +'<h3 style="margin-top:16px">Итог</h3><table><thead><tr><th></th><th>Человек</th>'+thSys.replace(/class="num"/g,"")+'</tr></thead><tbody>'+out+'</tbody></table></div>')
+    +acc("Доля речи и энергия", (typeof base.speech==="number"?"менеджер "+base.speech+"% по записи, на слух "+(100-m.client_share)+"%":"замеров нет"),
+        (speechBlock||energyBlock)?'<div class="grid3">'+speechBlock+energyBlock+'</div>':'<p class="expl">Диаризация по этой встрече не запускалась.</p>')
+    +acc("Замеры", "«комитет» "+m.komitet+" на слух / "+base.komitet+" по тексту",
+        '<div class="block"><table><thead><tr><th>Что</th><th class="num">На слух</th><th class="num">По расшифровке</th><th class="num">Разница</th></tr></thead><tbody>'+meas+'</tbody></table></div>')
+    +(csb?acc("Оценки клиента", sv.scores.join(" · "), csb):"")
+    +acc("Что улучшить, по мнению человека", "", '<p style="margin:0;font-size:13.5px">'+esc((m.improve||[]).join("; "))+'</p>'
+        +(m.quote?'<p style="margin:6px 0 0;font-size:12.5px;color:var(--faint)">Цитата, решившая исход: «'+esc(m.quote)+'»</p>':""))
+    +'</div></div>';
 });
 document.getElementById("meetings").innerHTML=html;
 
@@ -380,5 +421,5 @@ document.getElementById("meetings").innerHTML=html;
   document.getElementById("concl").innerHTML=out.map(function(c){return '<div class="concl"><b>'+esc(c.t)+'</b>'+esc(c.b)+'</div>'}).join("");
 })();
 
-document.getElementById("foot").textContent="Ручные оценки — по листу оценки, заполненному после просмотра записи. Системные — модели "+allModels.map(label).join(", ")+" по одной и той же расшифровке с разделением говорящих; счётчики и тайминги посчитаны кодом.";
+document.getElementById("foot").textContent="Ручные оценки — по листу оценки, заполненному после просмотра записи. Системные — модели "+allModels.map(label).join(", ")+" по одной и той же расшифровке с разделением говорящих; счётчики и тайминги посчитаны кодом. Балл 0–100 у человека и системы считается по одной формуле: цель, элементы, этапы, речь.";
 </script>

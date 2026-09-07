@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Менеджеры ОКК</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -195,6 +196,24 @@ ul.list.obj li::before{background:var(--bad-bar)}
 
 
 footer{padding:8px 24px 30px;font-size:12px;color:var(--faint)}
+
+/* лента вердиктов */
+.feed{display:flex;flex-direction:column;gap:10px}
+.fr{display:grid;grid-template-columns:6px 200px 150px 1fr 230px 100px;gap:16px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);cursor:pointer}
+.fr:hover{background:var(--zebra)} .fr.open{background:var(--card);border-color:var(--gold-a)} .fr:focus-visible{outline:2px solid var(--gold-b)}
+.fbar{width:6px;height:44px;border-radius:4px;background:var(--faint)} .lvl-bad .fbar{background:var(--bad)} .lvl-mid .fbar{background:var(--mid)} .lvl-ok .fbar{background:var(--ok)}
+.fwho b{display:block;font-size:13.5px;font-weight:600} .fwho small{display:block;color:var(--faint);font-size:12px}
+.fverdict{font-weight:700;font-size:15px} .lvl-bad .fverdict{color:var(--bad)} .lvl-mid .fverdict{color:var(--mid)} .lvl-ok .fverdict{color:var(--ok)}
+.fverdict small{display:block;font-weight:400;color:var(--dim);font-size:12px}
+.fgap{font-size:12.5px;color:var(--dim);min-width:0} .fgap b{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.03em;font-weight:600}
+.lvl-bad .fgap.fmain b,.lvl-mid .fgap.fmain b{color:var(--bad)}
+.fopen{color:var(--gold);font-weight:600;font-size:12.5px;text-align:right;white-space:nowrap}
+.fdetail{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;padding:12px 0 4px;border-top:1px solid var(--line);margin-top:4px;cursor:default}
+.fdetail h4{margin:0 0 5px;font-size:11px;color:var(--faint);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.fdetail p,.fdetail ul{margin:0;font-size:13px;color:var(--dim);line-height:1.5} .fdetail ul{padding-left:16px}
+.fdetail .flinks{margin-top:8px} .fdetail .flinks a{color:var(--gold);font-weight:600;margin-right:12px;text-decoration:none}
+.fdetail .flinks a.full{color:var(--ink)}
+@media (max-width:1000px){.fr{grid-template-columns:6px 1fr 130px 90px}.fgap{display:none}.fdetail{grid-template-columns:1fr}}
 </style>
 
 <div class="layout">
@@ -252,10 +271,7 @@ footer{padding:8px 24px 30px;font-size:12px;color:var(--faint)}
     </div>
     <div class="widget wide">
       <div class="wtitle"><h2>Все встречи</h2><span id="cnt"></span></div>
-      <div class="tablebox"><table>
-        <thead><tr><th>Когда</th><th>Клиент</th><th>Цель достигнута</th><th class="num">Вер.</th><th class="num">Контакт</th><th class="num">Потребн.</th><th class="num">Презент.</th><th class="num">Возраж.</th><th class="num">Фиксация</th><th class="num">Речь</th><th class="num">Комитет</th><th>Следующий шаг</th><th></th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table></div>
+      <div class="feed" id="rows"></div>
     </div>
   </div>
   <footer id="foot">—</footer>
@@ -294,6 +310,47 @@ paint(read()||"auto");document.querySelector(".themer").addEventListener("click"
 
 var PAYLOAD = /*__DATA__*/;
 var DATA = PAYLOAD.items;
+/*__VERDICT__*/
+
+/* строка ленты: вердикт, главный пропуск, раскрытие на месте */
+function feedRow(d,i,showMgr){
+  var v=verdictOf(d);
+  var links=(d.amo?'<a href="'+esc(d.amo)+'" target="_blank" rel="noopener">сделка в amo</a>':'')+(d.zoom?'<a href="'+esc(d.zoom)+'" target="_blank" rel="noopener">запись</a>':'');
+  var facts=[d.prob!=null?"вероятность "+d.prob+"%":"", typeof d.speech==="number"?"речь менеджера "+d.speech+"%":"", "«комитет» "+(d.komitet||0)].filter(Boolean).join(" · ");
+  var why=v.red.length?'<ul>'+v.red.slice(0,4).map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul>':'<p>'+esc(v.why||v.summary||"—")+'</p>';
+  var isRef=/эталон/i.test(d.client||"");
+  return '<div class="fr lvl-'+v.level+'" data-i="'+i+'" tabindex="0">'
+    +'<div class="fbar"></div>'
+    +'<div class="fwho"><b>'+esc(d.client||"—")+(isRef?' <span class="pill ref">эталон</span>':'')+'</b><small>'+esc(d.held||"—")+(showMgr&&d.mgr?" · "+esc(d.mgr):"")+'</small></div>'
+    +'<div class="fverdict">'+v.word+'<small>цель '+esc(String(d.achieved||"—").toLowerCase())+(v.score!=null?' · '+v.score+' баллов':'')+'</small></div>'
+    +'<div class="fgap fmain"><b>'+(v.level==="ok"?"что улучшить":"главный пропуск")+'</b>'+esc(v.main||v.advice||"—")+'</div>'
+    +'<div class="fgap fmeta"><b>цифры</b>'+esc(facts)+'</div>'
+    +'<div class="fopen">подробнее ↓</div>'
+    +'<div class="fdetail" hidden>'
+    +'<div><h4>'+(v.red.length?'Красная зона':'Почему такой вердикт')+'</h4>'+why+'</div>'
+    +'<div><h4>'+(v.scores.length?'Оценки клиента, назвал сам':'Обязательные элементы')+'</h4><p>'+(v.scores.length?esc(v.scores.join(" · ")):(v.elTot?'прозвучало '+v.elPres+' из '+v.elTot:'—'))+'</p>'
+    +(v.scores.length&&v.elTot?'<p>элементы: прозвучало '+v.elPres+' из '+v.elTot+'</p>':'')+'</div>'
+    +'<div><h4>Один совет менеджеру</h4><p>'+esc(v.advice||"—")+'</p><p class="flinks"><a href="#" class="full" data-i="'+i+'">полный разбор →</a>'+links+'</p></div>'
+    +'</div></div>';
+}
+function feedToggle(fr){
+  var det=fr.querySelector(".fdetail"); det.hidden=!det.hidden;
+  fr.classList.toggle("open",!det.hidden);
+  fr.querySelector(".fopen").textContent=det.hidden?"подробнее ↓":"свернуть ↑";
+}
+function wireFeed(box){
+  box.addEventListener("click",function(e){
+    var full=e.target.closest("a.full"); if(full){e.preventDefault();openRow(+full.getAttribute("data-i"));return}
+    if(e.target.closest("a")) return;
+    if(e.target.closest(".fdetail")) return;
+    var fr=e.target.closest(".fr"); if(fr) feedToggle(fr);
+  });
+  box.addEventListener("keydown",function(e){
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    if(e.target.closest("input,button,a"))return;
+    var fr=e.target.closest(".fr"); if(fr){e.preventDefault();feedToggle(fr)}
+  });
+}
 
 var STAGE_NAMES = {contact:"Установление контакта", needs:"Выявление потребностей",
   present:"Презентация", objections:"Отработка возражений", close:"Фиксация договорённостей"};
@@ -437,17 +494,12 @@ function render(name){
   })();
 
   /* таблица */
-  document.getElementById("cnt").textContent=n+" встреч, от старых к новым";
-  var ordered=list.slice().reverse();
-  view=ordered.map(function(d){return {i:DATA.indexOf(d)}});
-  document.getElementById("rows").innerHTML=ordered.map(function(d){
-    return '<tr data-i="'+DATA.indexOf(d)+'" tabindex="0"><td class="num">'+esc(d.held||"—")+'</td><td>'+esc(d.client)+(isRef(d)?' <span class="pill ref">эталон</span>':"")+'</td><td>'+goalPill(d.achieved)+'</td>'
-      +'<td class="num">'+(d.prob==null?"—":d.prob+"%")+'</td>'
-      +d.s.map(function(v){return '<td class="sc '+cls(v)+'">'+(v==null?"—":v)+'</td>'}).join("")
-      +'<td class="num">'+(typeof d.speech==="number"?d.speech+"%":"—")+'</td><td class="num">'+d.komitet+'</td>'
-      +'<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;color:var(--dim)">'+esc(d.next)+'</td>'
-      +'<td style="color:var(--gold);font-weight:600">разбор →</td></tr>';
-  }).join("");
+  var ranked=list.map(function(d){return {d:d,i:DATA.indexOf(d),v:verdictOf(d)}})
+    .sort(function(a,b){return verdictRank(a.v)-verdictRank(b.v)||(dateKey(b.d.held)>dateKey(a.d.held)?1:-1)});
+  var bad=ranked.filter(function(x){return x.v.level==="bad"}).length, mid=ranked.filter(function(x){return x.v.level==="mid"}).length;
+  document.getElementById("cnt").textContent=n+" встреч, проблемные первыми · провалов "+bad+", рисков "+mid;
+  view=ranked.map(function(x){return {i:x.i}});
+  document.getElementById("rows").innerHTML=ranked.map(function(x){return feedRow(x.d,x.i,false)}).join("");
 }
 render(initial);
 
@@ -457,8 +509,6 @@ var current=-1;
 function openRow(i){
   var d=DATA[i], r=d.review||{};
   current=i;
-  document.querySelectorAll("tbody tr").forEach(function(t){t.classList.remove("sel")});
-  var tr=tbody.querySelector('tr[data-i="'+i+'"]'); if(tr) tr.classList.add("sel");
 
   document.getElementById("d-title").textContent=d.client||"Встреча";
   document.getElementById("d-meta").innerHTML =
@@ -629,13 +679,6 @@ document.addEventListener("keydown",function(e){
   if(e.key==="ArrowLeft") step(-1);
   if(e.key==="ArrowRight") step(1);
 });
-tbody.addEventListener("click",function(e){
-  if(e.target.closest("a")) return;          // клик по ссылке — уходим по ней, окно не трогаем
-  var tr=e.target.closest("tr"); if(tr) openRow(+tr.getAttribute("data-i"));
-});
-tbody.addEventListener("keydown",function(e){
-  if(e.key!=="Enter"&&e.key!==" ")return;
-  var tr=e.target.closest("tr"); if(tr){e.preventDefault();openRow(+tr.getAttribute("data-i"))}
-});
+wireFeed(tbody);
 document.getElementById("foot").textContent="Засечка на полосах профиля — среднее по всему отделу ("+DATA.length+" встреч). Оценки этапов — модель "+PAYLOAD.model+", доля речи и счётчики — код по расшифровке.";
 </script>
