@@ -8,9 +8,9 @@ on:
         required: false
         default: '3'
       model:
-        description: 'OpenRouter model (empty = pick a free one automatically)'
+        description: 'OpenRouter model (default Sonnet 5; Opus 5 for disputed meetings; empty = free pick)'
         required: false
-        default: ''
+        default: 'anthropic/claude-sonnet-5'
       managers:
         description: 'Only these managers, comma separated (empty = any)'
         required: false
@@ -40,5 +40,6 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           LIMIT: ${{ inputs.limit }}
           OKK_MODEL: ${{ inputs.model }}
+          MAX_CHARS: ${{ inputs.model && '400000' || '' }}
           MANAGERS: ${{ inputs.managers }}
           REDO: ${{ inputs.redo }}

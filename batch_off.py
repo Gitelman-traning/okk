@@ -105,6 +105,7 @@ def main():
     headers = one_off.or_headers("OKK batch")
     models = okk.pick_models(headers)
     ok = fail = 0
+    spent = 0.0
     for d in queue:
         rid = d["id"]
         try:
@@ -117,12 +118,13 @@ def main():
             log("[%s] %s" % (rid, one_off.write_line(values, hdr, line, key_id=rid)))
             log("[%s] готово: цель %s, вероятность %s, скрипт %s" % (
                 rid, review.get("goal_achieved"), review.get("probability"), line.get("скрипт: выполнено") or "—"))
+            spent += float(okk.LAST_USAGE.get("cost") or 0)
             ok += 1
         except Exception as e:
             fail += 1
             log("[%s] ОШИБКА: %s: %s" % (rid, type(e).__name__, str(e)[:300]))
         time.sleep(PAUSE)
-    log("ГОТОВО. Разобрано: %d, ошибок: %d, модель: %s" % (ok, fail, models[0] if models else "—"))
+    log("ГОТОВО. Разобрано: %d, ошибок: %d, модель: %s, потрачено на модель: $%.3f" % (ok, fail, models[0] if models else "—", spent))
     if not ok:
         sys.exit(1)
 

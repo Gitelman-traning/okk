@@ -101,7 +101,8 @@ def analyze(dg, deal, runs, headers):
         review["speech"] = speech
         review = okk.locate_quotes(review, words)
         located = sum(1 for c in review.get("checklist", []) if c.get("at"))
-        log("[%s] таймингов у цитат чек-листа: %d из %d" % (model, located, len(review.get("checklist", []))))
+        log("[%s] таймингов у цитат чек-листа: %d из %d, стоимость $%s" % (
+            model, located, len(review.get("checklist", [])), okk.LAST_USAGE.get("cost")))
 
         row = okk.to_row({"ID": deal.get("id", ""), "first_name": deal.get("client", ""), "last_name": "",
                           "amo_link": deal.get("amo", ""), "doc_url": ""},

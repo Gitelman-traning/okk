@@ -45,7 +45,7 @@ MODEL_PREFS = ("minimax", "z-ai", "thinkingmachines", "deepseek", "qwen",
                "inclusionai", "dots-studio", "cohere", "google", "nvidia")
 MIN_CONTEXT = 60000      # расшифровка на 1,5 часа — это 20–30 тыс. токенов
 
-MAX_CHARS = 45000        # обрезка расшифровки перед отправкой (хвост важнее — там закрытие)
+MAX_CHARS = int(os.environ.get("MAX_CHARS") or 45000)   # обрезка расшифровки перед отправкой (хвост важнее — там закрытие)
 LIMIT = int(os.environ.get("LIMIT") or "5")
 PAUSE = int(os.environ.get("PAUSE") or "8")   # пауза между встречами, сек
 MODEL_ENV = os.environ.get("OKK_MODEL", "").strip()
@@ -395,7 +395,11 @@ def pick_models(headers):
     return ids
 
 
+LAST_USAGE = {}     # стоимость последнего ответа модели: cost (USD), prompt, completion, model
+
+
 def ask_model(models, headers, transcript, metrics, script=None):
+    LAST_USAGE.clear()
     prompt = (
         "Расшифровка встречи (автоматическая, без разметки говорящих):\n\n"
         + transcript
@@ -409,6 +413,7 @@ def ask_model(models, headers, transcript, metrics, script=None):
                      {"role": "user", "content": prompt}],
         "temperature": 0.2,
         "response_format": {"type": "json_object"},
+        "usage": {"include": True},     # OpenRouter возвращает стоимость запроса — пишем её в лист и в лог
     }
     last = ""
     for model in models:
@@ -423,7 +428,13 @@ def ask_model(models, headers, transcript, metrics, script=None):
                     time.sleep(3)
                     break          # к следующей модели, ждать бесполезно
                 r.raise_for_status()
-                msg = (r.json().get("choices") or [{}])[0].get("message") or {}
+                data = r.json()
+                u = data.get("usage") or {}
+                LAST_USAGE.update({"cost": u.get("cost"), "prompt": u.get("prompt_tokens"),
+                                   "completion": u.get("completion_tokens"), "model": model})
+                if u.get("cost") is not None:
+                    log("   %s: %s + %s токенов, $%.4f" % (model, u.get("prompt_tokens"), u.get("completion_tokens"), float(u["cost"])))
+                msg = (data.get("choices") or [{}])[0].get("message") or {}
                 content = msg.get("content") or msg.get("reasoning") or ""
                 if not content.strip():
                     raise ValueError("пустой ответ модели")
@@ -450,7 +461,7 @@ OKK_HEADERS = ["дата разбора", "ID сделки", "клиент", "с
                "вопросов", "слов", "резюме", "модель", "json",
                "элементы: спросил", "элементы: прозвучало",
                "менеджер", "дата встречи", "источник", "оборот", "запись zoom", "код доступа",
-               "скрипт: выполнено", "оценки клиента"]
+               "скрипт: выполнено", "оценки клиента", "стоимость, $"]
 
 
 def ensure_tab(sheets):
@@ -588,6 +599,7 @@ def to_row(row, review, metrics, model, stamp, meta=None):
         meta.get("manager", ""), meta.get("held_at", ""), meta.get("source", ""),
         meta.get("turnover", ""), meta.get("zoom", ""), meta.get("passcode", ""),
         script_count(review), client_scores_text(review),
+        ("%.4f" % LAST_USAGE["cost"]) if LAST_USAGE.get("model") == model and LAST_USAGE.get("cost") is not None else "",
     ]
 
 
@@ -652,7 +664,7 @@ def main():
     if not os.path.isdir(OUT_DIR):
         os.makedirs(OUT_DIR)
 
-    results, ok, fail = [], 0, 0
+    results, ok, fail, spent = [], 0, 0, 0.0
     for row in pending:
         rid = row.get("ID", "").strip() or "?"
         try:
@@ -686,6 +698,7 @@ def main():
                               valueInputOption="RAW", insertDataOption="INSERT_ROWS",
                               body={"values": [[fields.get(c, "") for c in hdr]]}).execute()
             results.append({"row": row, "metrics": metrics, "review": review})
+            spent += float(LAST_USAGE.get("cost") or 0)
             ok += 1
             # содержание разбора в лог не пишем: логи публичного репозитория видны всем
             log("[%s] готово, строка записана" % rid)
@@ -698,8 +711,8 @@ def main():
         json.dump({"generated": stamp, "models": models, "items": results},
                   f, ensure_ascii=False, indent=1)
 
-    log("ГОТОВО. Разобрано: %d, ошибок: %d" % (ok, fail))
-    return {"ok": ok, "fail": fail, "model": ", ".join(models[:2])}
+    log("ГОТОВО. Разобрано: %d, ошибок: %d, потрачено на модель: $%.3f" % (ok, fail, spent))
+    return {"ok": ok, "fail": fail, "model": ", ".join(models[:2]), "spent": spent}
 
 
 if __name__ == "__main__":

@@ -15,9 +15,9 @@ on:
         required: false
         default: '10'
       model:
-        description: 'Model id (empty = free pick)'
+        description: 'Model id (default Sonnet 5; Opus 5 for disputed; empty = free pick)'
         required: false
-        default: 'anthropic/claude-opus-5'
+        default: 'anthropic/claude-sonnet-5'
       redo:
         description: 'Re-analyze already processed (1 = yes)'
         required: false

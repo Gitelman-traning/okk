@@ -35,9 +35,9 @@ on:
         required: false
         default: ''
       model:
-        description: 'Single model for the main sheet row (empty = free pick)'
+        description: 'Single model for the main sheet row (default Opus 5 — one-offs are references and disputed cases)'
         required: false
-        default: ''
+        default: 'anthropic/claude-opus-5'
 
 jobs:
   oneoff:
