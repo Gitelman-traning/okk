@@ -33,6 +33,9 @@ jobs:
       - run: python okk_analyze.py
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_PRICES_JSON: ${{ secrets.LLM_PRICES_JSON }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           CHECKLIST_JSON: ${{ secrets.CHECKLIST_JSON }}
           SHEET_ID: ${{ secrets.SHEET_ID }}

@@ -73,6 +73,9 @@ jobs:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           DEEPGRAM_TOKEN: ${{ secrets.DEEPGRAM_TOKEN }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_PRICES_JSON: ${{ secrets.LLM_PRICES_JSON }}
           REC_URL: ${{ inputs.url }}
           REC_PASSCODE: ${{ inputs.passcode }}
           REC_CLIENT: ${{ inputs.client }}

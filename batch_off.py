@@ -124,7 +124,7 @@ def main():
             fail += 1
             log("[%s] ОШИБКА: %s: %s" % (rid, type(e).__name__, str(e)[:300]))
         time.sleep(PAUSE)
-    log("ГОТОВО. Разобрано: %d, ошибок: %d, модель: %s, потрачено на модель: $%.3f" % (ok, fail, models[0] if models else "—", spent))
+    log("ГОТОВО. Разобрано: %d, ошибок: %d, модель: %s, потрачено на модель: %.0f ₽" % (ok, fail, models[0] if models else "—", spent))
     if not ok:
         sys.exit(1)
 

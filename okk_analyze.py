@@ -37,7 +37,22 @@ ZOOM_TAB = os.environ.get("ZOOM_TAB", "ZOOM").strip()     # менеджер, д
 ZOOM_HEADER_ROW = int(os.environ.get("ZOOM_HEADER_ROW") or "1931")
 OKK_TAB = os.environ.get("OKK_TAB", "ОКК").strip()        # сюда пишем разбор
 
-OR_URL = "https://openrouter.ai/api/v1"
+# Провайдер моделей: любой OpenAI-совместимый endpoint (OpenRouter, ProxyAPI, VseGPT…).
+# LLM_BASE_URL / LLM_API_KEY переключают его без правок кода; по умолчанию — OpenRouter.
+OR_URL = (os.environ.get("LLM_BASE_URL", "").strip().rstrip("/") or "https://openrouter.ai/api/v1")
+IS_OPENROUTER = "openrouter.ai" in OR_URL
+USD_RATE = float(os.environ.get("USD_RATE") or 95)
+# Цены в рублях за 1M токенов (вход, выход) — для провайдеров, которые не возвращают стоимость в ответе.
+# Переопределяются переменной LLM_PRICES_JSON: {"id модели": [вход, выход]}.
+PRICES_RUB = {
+    "anthropic/claude-sonnet-5": [600, 3030], "anthropic/claude-opus-5": [1516, 7579],
+    "anthropic/claude-haiku-4.5": [200, 1000], "openai/gpt-5": [323, 2577],
+    "openai/gpt-5-mini": [65, 520], "google/gemini-2.5-pro": [323, 2577], "google/gemini-2.5-flash": [78, 645],
+}
+try:
+    PRICES_RUB.update(json.loads(os.environ.get("LLM_PRICES_JSON") or "{}"))
+except ValueError:
+    pass
 # Приоритет вендоров: чем раньше в списке, тем охотнее берём.
 # Порядок выставлен по бесплатному пулу — у gemma и nemotron лимиты выбираются
 # первыми, поэтому крупные модели с большим контекстом идут впереди.
@@ -52,7 +67,7 @@ MODEL_ENV = os.environ.get("OKK_MODEL", "").strip()
 # Разбирать только встречи выбранных менеджеров: "Камилла,Мурад" — совпадение по части фамилии.
 MANAGERS = [m.strip().lower() for m in os.environ.get("MANAGERS", "").split(",") if m.strip()]
 
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
+OPENROUTER_API_KEY = (os.environ.get("LLM_API_KEY", "").strip() or os.environ.get("OPENROUTER_API_KEY", "").strip())
 GOOGLE_SA_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
@@ -375,6 +390,8 @@ def pick_models(headers):
     if MODEL_ENV:
         log("модель задана вручную: %s" % MODEL_ENV)
         return [MODEL_ENV]
+    if not IS_OPENROUTER:
+        raise RuntimeError("у провайдера %s нет автоматического выбора бесплатной модели — укажи модель (OKK_MODEL)" % OR_URL)
     r = requests.get(OR_URL + "/models", headers=headers, timeout=60)
     r.raise_for_status()
     models = r.json().get("data", [])
@@ -395,7 +412,17 @@ def pick_models(headers):
     return ids
 
 
-LAST_USAGE = {}     # стоимость последнего ответа модели: cost (USD), prompt, completion, model
+LAST_USAGE = {}     # стоимость последнего ответа модели: cost (₽), prompt, completion, model
+
+
+def cost_rub(model, usage):
+    """Стоимость ответа в рублях: из usage.cost (OpenRouter, доллары) или по таблице цен провайдера."""
+    if usage.get("cost") is not None:
+        return round(float(usage["cost"]) * USD_RATE, 2)
+    p = PRICES_RUB.get(model) or PRICES_RUB.get(model.split("/")[-1])
+    if not p:
+        return None
+    return round((usage.get("prompt_tokens") or 0) * p[0] / 1e6 + (usage.get("completion_tokens") or 0) * p[1] / 1e6, 2)
 
 
 def ask_model(models, headers, transcript, metrics, script=None):
@@ -413,8 +440,9 @@ def ask_model(models, headers, transcript, metrics, script=None):
                      {"role": "user", "content": prompt}],
         "temperature": 0.2,
         "response_format": {"type": "json_object"},
-        "usage": {"include": True},     # OpenRouter возвращает стоимость запроса — пишем её в лист и в лог
     }
+    if IS_OPENROUTER:
+        body["usage"] = {"include": True}     # OpenRouter возвращает стоимость запроса в долларах
     last = ""
     for model in models:
         body["model"] = model
@@ -430,10 +458,10 @@ def ask_model(models, headers, transcript, metrics, script=None):
                 r.raise_for_status()
                 data = r.json()
                 u = data.get("usage") or {}
-                LAST_USAGE.update({"cost": u.get("cost"), "prompt": u.get("prompt_tokens"),
+                LAST_USAGE.update({"cost": cost_rub(model, u), "prompt": u.get("prompt_tokens"),
                                    "completion": u.get("completion_tokens"), "model": model})
-                if u.get("cost") is not None:
-                    log("   %s: %s + %s токенов, $%.4f" % (model, u.get("prompt_tokens"), u.get("completion_tokens"), float(u["cost"])))
+                if LAST_USAGE["cost"] is not None:
+                    log("   %s: %s + %s токенов, %.2f ₽" % (model, u.get("prompt_tokens"), u.get("completion_tokens"), LAST_USAGE["cost"]))
                 msg = (data.get("choices") or [{}])[0].get("message") or {}
                 content = msg.get("content") or msg.get("reasoning") or ""
                 if not content.strip():
@@ -461,7 +489,7 @@ OKK_HEADERS = ["дата разбора", "ID сделки", "клиент", "с
                "вопросов", "слов", "резюме", "модель", "json",
                "элементы: спросил", "элементы: прозвучало",
                "менеджер", "дата встречи", "источник", "оборот", "запись zoom", "код доступа",
-               "скрипт: выполнено", "оценки клиента", "стоимость, $"]
+               "скрипт: выполнено", "оценки клиента", "стоимость, ₽"]
 
 
 def ensure_tab(sheets):
@@ -599,7 +627,7 @@ def to_row(row, review, metrics, model, stamp, meta=None):
         meta.get("manager", ""), meta.get("held_at", ""), meta.get("source", ""),
         meta.get("turnover", ""), meta.get("zoom", ""), meta.get("passcode", ""),
         script_count(review), client_scores_text(review),
-        ("%.4f" % LAST_USAGE["cost"]) if LAST_USAGE.get("model") == model and LAST_USAGE.get("cost") is not None else "",
+        ("%.2f" % LAST_USAGE["cost"]) if LAST_USAGE.get("model") == model and LAST_USAGE.get("cost") is not None else "",
     ]
 
 
@@ -711,7 +739,7 @@ def main():
         json.dump({"generated": stamp, "models": models, "items": results},
                   f, ensure_ascii=False, indent=1)
 
-    log("ГОТОВО. Разобрано: %d, ошибок: %d, потрачено на модель: $%.3f" % (ok, fail, spent))
+    log("ГОТОВО. Разобрано: %d, ошибок: %d, потрачено на модель: %.0f ₽" % (ok, fail, spent))
     return {"ok": ok, "fail": fail, "model": ", ".join(models[:2]), "spent": spent}
 
 

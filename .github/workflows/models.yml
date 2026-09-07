@@ -21,4 +21,7 @@ jobs:
       - run: python models_report.py
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_PRICES_JSON: ${{ secrets.LLM_PRICES_JSON }}
           MEETINGS: ${{ inputs.meetings }}
