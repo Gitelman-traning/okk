@@ -451,6 +451,7 @@ def ask_model(models, headers, transcript, metrics, script=None):
         "messages": [{"role": "system", "content": SYSTEM_PROMPT + script_prompt(script)},
                      {"role": "user", "content": prompt}],
         "temperature": 0.2,
+        "max_tokens": 16000,      # разбор с 15 элементами, скриптом и цитатами не влезает в 4096 по умолчанию
         "response_format": {"type": "json_object"},
     }
     if IS_OPENROUTER:
@@ -474,10 +475,25 @@ def ask_model(models, headers, transcript, metrics, script=None):
                                    "completion": u.get("completion_tokens"), "model": model})
                 if LAST_USAGE["cost"] is not None:
                     log("   %s: %s + %s токенов, %.2f ₽" % (model, u.get("prompt_tokens"), u.get("completion_tokens"), LAST_USAGE["cost"]))
-                msg = (data.get("choices") or [{}])[0].get("message") or {}
-                content = msg.get("content") or msg.get("reasoning") or ""
+                choice = (data.get("choices") or [{}])[0]
+                msg = choice.get("message") or {}
+                content = msg.get("content") or ""
+                if isinstance(content, list):      # части ответа (текст/мысли) — склеиваем текстовые
+                    content = "".join(p.get("text", "") for p in content if isinstance(p, dict))
                 if not content.strip():
-                    raise ValueError("пустой ответ модели")
+                    # некоторые прокси отдают JSON-режим через вызов инструмента
+                    for tc in msg.get("tool_calls") or []:
+                        args = (tc.get("function") or {}).get("arguments")
+                        if args:
+                            content = args if isinstance(args, str) else json.dumps(args, ensure_ascii=False)
+                            break
+                if not content.strip():
+                    content = msg.get("reasoning") or ""
+                if not content.strip():
+                    log("   %s: пустой ответ; finish=%s, ключи message=%s, choice=%s" % (
+                        model, choice.get("finish_reason"), sorted(msg.keys()), sorted(choice.keys())))
+                    last = "%s: пустой ответ модели" % model
+                    break          # повтор того же запроса стоит денег и вряд ли поможет — к следующей модели
                 # некоторые модели всё равно оборачивают ответ в ```json
                 content = re.sub(r"^```(?:json)?|```$", "", content.strip(), flags=re.M).strip()
                 return json.loads(content), model
