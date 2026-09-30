@@ -237,8 +237,9 @@ def call_model(model, headers, transcript, tech):
                           + "\n\nРазбери встречу по схеме."}],
             "temperature": 0.2, "max_tokens": 16000, "response_format": {"type": "json_object"}}
     body.update(extra_for(model))
-    if model.lower().startswith("openai/"):          # у новых моделей OpenAI лимит ответа зовётся иначе
+    if model.lower().startswith("openai/"):          # у новых моделей OpenAI лимит ответа зовётся иначе, а температура только по умолчанию
         body["max_completion_tokens"] = body.pop("max_tokens")
+        body.pop("temperature", None)
     t0 = time.time()
     r = requests.post(okk.OR_URL + "/chat/completions", headers=headers, json=body, timeout=900)
     secs = round(time.time() - t0, 1)
