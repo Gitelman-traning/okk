@@ -48,6 +48,8 @@ PRICES_RUB = {
     "anthropic/claude-sonnet-5": [600, 3030], "anthropic/claude-opus-5": [1516, 7579],
     "anthropic/claude-haiku-4.5": [200, 1000], "openai/gpt-5": [323, 2577],
     "openai/gpt-5-mini": [65, 520], "google/gemini-2.5-pro": [323, 2577], "google/gemini-2.5-flash": [78, 645],
+    "anthropic/claude-opus-5-5": [840, 4200], "anthropic/claude-sonnet-5-5": [500, 2500], "anthropic/claude-fable-5-1": [1580, 7900],
+    "openai/gpt-6-astra": [1580, 7900], "openai/gpt-6-sol": [420, 2100], "openai/gpt-6-luna": [30, 150],
 }
 try:
     PRICES_RUB.update(json.loads(os.environ.get("LLM_PRICES_JSON") or "{}"))

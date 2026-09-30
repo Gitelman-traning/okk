@@ -23,6 +23,8 @@ from googleapiclient.discovery import build
 SHEET_ID = os.environ.get("SHEET_ID", "").strip()
 OKK_TAB = os.environ.get("OKK_TAB", "ОКК").strip()
 ALT_TAB = os.environ.get("ALT_TAB", "ОКК модели").strip()
+COACH_TAB = os.environ.get("COACH_TAB", "Коуч").strip()
+TPL_COACH = os.environ.get("TPL_COACH", "coach.tpl.html")
 # менеджеры, чьи встречи в дашборд не берём (нетипичные кейсы) — по подстроке имени
 EXCLUDE_MANAGERS = [m.strip().lower() for m in os.environ.get("EXCLUDE_MANAGERS", "Ткачева").split(",") if m.strip()]
 SA_FILE = os.environ.get("GOOGLE_SA_FILE", "").strip()
@@ -162,8 +164,21 @@ def main():
                        "items": [{"id": i["id"], "name": i["name"], "mandatory": bool(i.get("mandatory")),
                                   "code": bool(i.get("markers"))} for i in s.get("items", [])]}
                    for k, s in (cfg.get("scripts") or {}).items()}
+    # коуч по диагностикам (методика v2): строки листа «Коуч» как есть, json разбора — объектом
+    coach = []
+    for r in read_tab(values, COACH_TAB):
+        try:
+            rv = json.loads(r.get("json") or "{}")
+        except ValueError:
+            rv = {}
+        coach.append({"date": r.get("дата разбора", ""), "client": clean(r.get("клиент")), "deal_id": r.get("ID сделки", ""),
+                      "mgr": clean(r.get("менеджер")), "held": clean(r.get("дата встречи")), "outcome": clean(r.get("исход")),
+                      "model": r.get("модель", ""), "score": num(r.get("балл")), "light": r.get("светофор", ""),
+                      "tokens_in": num(r.get("токены вход")), "tokens_out": num(r.get("токены выход")),
+                      "secs": num(r.get("секунд")), "cost": num(r.get("стоимость, ₽")), "review": rv})
+    coach = [c for c in coach if keep(c)]
     payload = {"generated": generated, "model": model, "items": items, "manual": manual,
-               "elements": elements, "alts": alts, "scripts": scripts}
+               "elements": elements, "alts": alts, "scripts": scripts, "coach": coach}
     verdict_js = io.open("verdict.js", encoding="utf-8").read()
     tpl = io.open(TPL, encoding="utf-8").read()
     data = json.dumps(payload, ensure_ascii=False)
@@ -181,7 +196,7 @@ def main():
     charts_tpl = io.open(TPL_CHARTS, encoding="utf-8").read()
     io.open(charts_out, "w", encoding="utf-8").write(charts_tpl.replace("/*__DATA__*/", data).replace("/*__VERDICT__*/", verdict_js))
 
-    for tpl_name, fname in ((TPL_MANAGERS, "managers.html"), (TPL_COMPARE, "compare.html")):
+    for tpl_name, fname in ((TPL_MANAGERS, "managers.html"), (TPL_COMPARE, "compare.html"), (TPL_COACH, "coach.html")):
         if os.path.exists(tpl_name):
             page_tpl = io.open(tpl_name, encoding="utf-8").read()
             io.open(os.path.join(out_dir, fname), "w", encoding="utf-8").write(
