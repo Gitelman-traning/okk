@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Штаб · ОКК · Коуч по диагностикам</title>
+<link rel="stylesheet" href="/ui.css">
+<style>
+.tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tabs button{border:1px solid var(--line-2);background:var(--card);color:var(--dim);border-radius:10px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--gold-soft);color:var(--gold);border-color:transparent;font-weight:600}
+.tabs .lbl{font-size:12px;color:var(--faint);margin-right:4px}
+#body{display:flex;flex-direction:column;gap:20px}
+.light{display:inline-block;padding:2px 9px;border-radius:8px;font-size:12px;font-weight:600}
+.light.green{background:var(--ok-bg);color:var(--ok)}.light.yellow{background:var(--mid-bg);color:var(--mid)}.light.red{background:var(--bad-bg);color:var(--bad)}
+.light.high{background:var(--ok-bg);color:var(--ok)}.light.mid{background:var(--mid-bg);color:var(--mid)}.light.low{background:var(--bad-bg);color:var(--bad)}
+table.cmp td.num,table.cmp th.num{text-align:right;font-variant-numeric:tabular-nums}
+table.cmp td.best{color:var(--ok);font-weight:600}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.res .kpi .v{font-size:26px}
+.blk{border-top:1px solid var(--line);padding:12px 0}
+.blk h3{margin:0 0 6px;font-size:14px;font-weight:600;display:flex;align-items:baseline;gap:10px}
+.blk h3 .sc{font-variant-numeric:tabular-nums;color:var(--gold)}
+.blk p{margin:0 0 4px;font-size:13px}
+.blk .lost{color:var(--bad)}.blk .lost b{color:var(--bad)}
+.blk .q{color:var(--dim);font-style:italic;font-size:12.5px;border-left:2px solid var(--gold-b);padding-left:8px;margin:4px 0 6px}
+.sub{margin:6px 0 0;padding-left:14px}.sub p{margin:0 0 3px}
+.sub .sc{display:inline-block;min-width:34px;font-weight:600;color:var(--gold);font-variant-numeric:tabular-nums}
+.pain{background:var(--soft);border-radius:10px;padding:10px 12px;margin:0 0 8px;font-size:13px}
+.pain b{display:block;margin-bottom:2px}.pain .ln{color:var(--dim)}.pain .no{color:var(--bad)}
+.grow ol{margin:4px 0 0;padding-left:20px;font-size:13px}
+.miss{background:var(--mid-bg);border-radius:10px;padding:10px 12px;font-size:13px;margin:0 0 8px}
+.deep{background:var(--gold-soft);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--gold)}
+.tech{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--dim)}.tech b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="side" id="side"></aside>
+<div class="pane">
+<header>
+  <div><div class="crumbs">Отдел продаж · Вторая линия · ОКК · <b>Коуч по диагностикам</b></div><h1>Коуч по диагностикам</h1><p class="sub">Глубина диагностики по методике v2: 100 баллов из семи блоков, светофор, статус сделки. Пилот: одни встречи, несколько моделей</p></div>
+  <div class="spacer"></div>
+  <div class="themer" role="group" aria-label="Тема оформления">
+    <button type="button" data-set="auto" aria-pressed="true">Авто</button>
+    <button type="button" data-set="light" aria-pressed="false">Светлая</button>
+    <button type="button" data-set="dark" aria-pressed="false">Тёмная</button>
+  </div>
+  <div class="stamp" id="stamp">—</div>
+</header>
+<main>
+  <div class="card"><div class="tabs" id="mtabs"></div></div>
+  <div id="body"></div>
+</main>
+</div>
+</div>
+<script src="/ui.js"></script>
+<script>
+var PAYLOAD = /*__DATA__*/;
+var ROWS = PAYLOAD.coach || [];
+var NAMES = {"anthropic/claude-opus-5-5":"Claude Opus 5.5","anthropic/claude-fable-5-1":"Claude Fable 5.1","anthropic/claude-sonnet-5":"Claude Sonnet 5","anthropic/claude-sonnet-5-5":"Claude Sonnet 5.5","anthropic/claude-opus-5":"Claude Opus 5","openai/gpt-6-astra":"GPT-6 Astra","openai/gpt-6-sol":"GPT-6 Sol","openai/gpt-5":"GPT-5"};
+var BLOCKS = [["b0","Контакт и контекст",5],["b1","Глубина диагностики",20],["b2","Конкретизация боли",20],["b3","Резюме и боль → решение",20],["b4","Проверка ценности и намерения",15],["b5","Барьеры и следующий шаг",15],["b6","Качество ведения разговора",5]];
+var SUBS = {b1_1:"Команда и роли",b1_2:"Качество людей",b1_3:"Автономность",b1_4:"Найм",b1_5:"Цели и разрыв"};
+var LIGHT = {green:"зелёный",yellow:"жёлтый",red:"красный"}, STATUS = {high:"высокий интерес",mid:"средний интерес",low:"низкий интерес"};
+var meetings = {}; ROWS.forEach(function(r){ var k = r.client + "|" + r.held; (meetings[k] = meetings[k] || {client:r.client, mgr:r.mgr, held:r.held, outcome:r.outcome, rows:[]}).rows.push(r); });
+var KEYS = Object.keys(meetings), CUR = KEYS[0], MODEL = "";
+function mname(m){ return NAMES[m] || m; }
+function fmt(n, d){ return n == null || n === "" ? "—" : Number(n).toLocaleString("ru-RU", {maximumFractionDigits: d == null ? 0 : d}); }
+var last = ""; ROWS.forEach(function(r){ if (r.date > last) last = r.date; });
+document.getElementById("stamp").textContent = ROWS.length ? "разборов " + ROWS.length + " · последний " + last : "разборов ещё нет";
+
+function tabs(){
+  var el = document.getElementById("mtabs");
+  el.innerHTML = '<span class="lbl">Встреча</span>' + KEYS.map(function(k){ var m = meetings[k]; return '<button type="button" data-k="' + esc(k) + '" aria-pressed="' + (k === CUR) + '">' + esc(m.client) + (m.mgr ? ' · ' + esc(m.mgr) : '') + (m.held ? ' · ' + esc(m.held) : '') + '</button>'; }).join("");
+  el.querySelectorAll("button").forEach(function(b){ b.onclick = function(){ CUR = b.dataset.k; MODEL = ""; tabs(); render(); }; });
+}
+function render(){
+  var body = document.getElementById("body"); body.innerHTML = "";
+  if (!CUR) { body.innerHTML = '<div class="card"><p class="empty">Разборов ещё нет - появятся после прогона «OKK coach»</p></div>'; return; }
+  var m = meetings[CUR], rows = m.rows.slice().sort(function(a,b){ return (b.score||0) - (a.score||0); });
+  // сравнение моделей
+  var cmp = document.createElement("div"); cmp.className = "card";
+  var bestCost = Math.min.apply(null, rows.map(function(r){ return r.cost || 1e9; })), bestSecs = Math.min.apply(null, rows.map(function(r){ return r.secs || 1e9; }));
+  cmp.innerHTML = '<h2>Модели на одной встрече <small>' + esc(m.client) + (m.outcome ? ' · исход: ' + esc(m.outcome) : '') + '</small></h2><div class="wide"><table class="cmp"><thead><tr><th>Модель</th><th class="num">Балл</th><th>Светофор</th><th>Статус сделки</th><th class="num">Интерес</th>'
+    + BLOCKS.map(function(b){ return '<th class="num" title="' + esc(b[1]) + '">' + b[0] + '<br><small>из ' + b[2] + '</small></th>'; }).join("")
+    + '<th class="num">Токены вход / выход</th><th class="num">Секунд</th><th class="num">₽</th></tr></thead><tbody>'
+    + rows.map(function(r){ var rv = r.review || {}, per = {}; (rv.blocks || []).forEach(function(b){ per[b.id] = b.score; }); var it = rv.interest || {};
+      return '<tr><td>' + esc(mname(r.model)) + '</td><td class="num"><b>' + fmt(r.score) + '</b></td><td><span class="light ' + esc(r.light) + '">' + (LIGHT[r.light] || esc(r.light)) + '</span></td><td><span class="light ' + esc(rv.deal_status || '') + '">' + (STATUS[rv.deal_status] || '—') + '</span></td><td class="num">' + (it.start != null ? it.start + ' → ' + it.end : '—') + '</td>'
+        + BLOCKS.map(function(b){ return '<td class="num">' + fmt(per[b[0]]) + '</td>'; }).join("")
+        + '<td class="num">' + fmt(r.tokens_in) + ' / ' + fmt(r.tokens_out) + '</td><td class="num' + (r.secs === bestSecs ? ' best' : '') + '">' + fmt(r.secs) + '</td><td class="num' + (r.cost === bestCost ? ' best' : '') + '">' + fmt(r.cost, 2) + '</td></tr>'; }).join("")
+    + '</tbody></table></div><p class="note">Балл по одной и той же рубрике. Разброс между моделями по блоку - повод посмотреть цитаты: кто из них опирается на реальный эпизод. Стоимость по прайсу агрегатора.</p>';
+  body.appendChild(cmp);
+  // отчёт выбранной модели
+  if (!MODEL || !rows.some(function(r){ return r.model === MODEL; })) MODEL = rows[0].model;
+  var rep = document.createElement("div"); rep.className = "card";
+  rep.innerHTML = '<div class="tabs" style="margin-bottom:14px"><span class="lbl">Отчёт модели</span>' + rows.map(function(r){ return '<button type="button" data-m="' + esc(r.model) + '" aria-pressed="' + (r.model === MODEL) + '">' + esc(mname(r.model)) + '</button>'; }).join("") + '</div><div id="report"></div>';
+  body.appendChild(rep);
+  rep.querySelectorAll("button[data-m]").forEach(function(b){ b.onclick = function(){ MODEL = b.dataset.m; render(); }; });
+  report(rows.filter(function(r){ return r.model === MODEL; })[0]);
+}
+function report(r){
+  var rv = r.review || {}, tech = rv.tech || {}, it = rv.interest || {}, com = rv.committee || {};
+  var per = {}; (rv.blocks || []).forEach(function(b){ per[b.id] = b; });
+  var h = '<div class="res">'
+    + '<div class="kpi"><span class="nm">Качество диагностики</span><span class="v">' + fmt(r.score) + '<span class="plan"> / 100</span></span><span class="row"><span>светофор</span><b><span class="light ' + esc(r.light) + '">' + (LIGHT[r.light] || '—') + '</span></b></span>' + ((rv.missing_critical || []).length ? '<span class="row"><span>нет критических</span><b>' + esc(rv.missing_critical.join(", ")) + '</b></span>' : '') + '</div>'
+    + '<div class="kpi"><span class="nm">Статус сделки</span><span class="v" style="font-size:18px">' + (STATUS[rv.deal_status] || '—') + '</span><span class="row"><span>' + esc(rv.deal_status_why || '') + '</span></span></div>'
+    + '<div class="kpi"><span class="nm">Интерес клиента</span><span class="v">' + (it.start != null ? it.start + ' → ' + it.end : '—') + '</span><span class="row"><span>' + esc(it.end_why || it.start_why || '') + '</span></span></div>'
+    + '</div>'
+    + '<p class="tech" style="margin:14px 0 4px"><span>Клиент говорит <b>' + fmt(tech.client_share) + '%</b></span><span>Диагност говорит <b>' + fmt(tech.manager_share) + '%</b></span><span>Самый длинный монолог диагноста <b>' + esc(tech.longest_monolog || '—') + '</b></span><span>Комитет упомянут <b>' + fmt(tech.committee_mentions) + '</b> раз</span><span>Интеграция комитета: <b>' + esc(com.mentions_quality || '—') + '</b></span></p>'
+    + (com.why ? '<p class="note" style="margin:0 0 6px">' + esc(com.why) + '</p>' : '');
+  BLOCKS.forEach(function(b){ var x = per[b[0]] || {};
+    h += '<div class="blk"><h3>' + esc(b[1]) + ' <span class="sc">' + fmt(x.score) + ' / ' + b[2] + '</span></h3>';
+    if (x.sub) { h += '<div class="sub">' + x.sub.map(function(s){ return '<p><span class="sc">' + fmt(s.score) + '/4</span> ' + esc(SUBS[s.id] || s.id) + ' - ' + esc(s.note || '') + (s.quote ? ' <span class="q" style="display:inline;border:0;padding:0">«' + esc(s.quote) + '»</span>' : '') + '</p>'; }).join("") + '</div>'; }
+    if (x.found) h += '<p><b>Что выяснено:</b> ' + esc(x.found) + '</p>';
+    if (x.coverage) h += '<p><b>Покрытие запросов:</b> ' + fmt(x.coverage.covered) + ' из ' + fmt(x.coverage.total) + '</p>';
+    if (x.readiness != null) h += '<p><b>Готовность:</b> ' + fmt(x.readiness) + '/10' + (x.readiness_explained === false ? ' <span class="lost">- не расшифровано, почему не выше</span>' : '') + '</p>';
+    if (x.next_step) h += '<p><b>Следующий шаг:</b> ' + esc(x.next_step) + (x.next_step_concrete === false ? ' <span class="lost">- не конкретный</span>' : '') + '</p>';
+    if (x.lost) h += '<p class="lost"><b>Потеряно:</b> ' + esc(x.lost) + '</p>';
+    if (x.quote) h += '<p class="q">«' + esc(x.quote) + '»</p>';
+    h += '</div>';
+  });
+  if ((rv.pains || []).length) { h += '<div class="blk"><h3>Главные боли клиента</h3>' + rv.pains.slice(0,3).map(function(p, i){ return '<div class="pain"><b>' + (i+1) + ') ' + esc(p.pain) + '</b>' + (p.quote ? '<div class="q">«' + esc(p.quote) + '»</div>' : '') + (p.consequence ? '<div>Последствие: ' + esc(p.consequence) + '</div>' : '') + (p.cost ? '<div>Цена бездействия: ' + esc(p.cost) + '</div>' : '') + '<div class="' + (p.linked ? 'ln' : 'no') + '">' + (p.linked ? 'Инструмент программы: ' + esc(p.solution) : 'Связка с инструментом программы не сделана') + '</div></div>'; }).join("") + '</div>'; }
+  h += '<div class="blk"><h3>Главная упущенная возможность</h3><div class="miss">' + esc(rv.missed_opportunity || '—') + '</div><h3>Как можно было углубить</h3><div class="deep">' + esc(rv.deepen || '—') + '</div></div>';
+  h += '<div class="blk grow"><h3>Три главные точки роста</h3><ol>' + (rv.growth || []).map(function(g){ return '<li>' + esc(g) + '</li>'; }).join("") + '</ol></div>';
+  if (rv.notes) h += '<p class="note">' + esc(rv.notes) + '</p>';
+  h += '<p class="note">Модель ' + esc(mname(r.model)) + ' · токены ' + fmt(r.tokens_in) + ' / ' + fmt(r.tokens_out) + ' · ' + fmt(r.secs) + ' с · ' + fmt(r.cost, 2) + ' ₽ · разбор ' + esc(r.date) + '</p>';
+  document.getElementById("report").innerHTML = h;
+}
+tabs(); render();
+</script>
+<script src="/nav.js"></script>
+</body>
+</html>

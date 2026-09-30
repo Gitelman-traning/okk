@@ -207,6 +207,28 @@ def manager_speaker(dg):
     return max(hits, key=hits.get)
 
 
+def extra_for(model):
+    """Параметры «мыслей» под конкретную модель. COACH_EXTRA_JSON: {"подстрока модели": {...}} переопределяет.
+    Старые Claude принимают thinking.type=disabled (секрет LLM_EXTRA_JSON), новые (5.5, Fable) — только adaptive + effort,
+    OpenAI параметр thinking не знает вовсе."""
+    try:
+        custom = json.loads(os.environ.get("COACH_EXTRA_JSON") or "{}")
+    except ValueError:
+        custom = {}
+    for key, val in custom.items():
+        if key in model:
+            return dict(val)
+    m = model.lower()
+    if "claude" in m:
+        if any(x in m for x in ("5-5", "5.5", "fable", "mythos")):
+            return {"thinking": {"type": "adaptive"}, "output_config": {"effort": os.environ.get("COACH_EFFORT", "medium")}}
+        try:
+            return json.loads(os.environ.get("LLM_EXTRA_JSON") or "{}")
+        except ValueError:
+            return {}
+    return {}
+
+
 def call_model(model, headers, transcript, tech):
     body = {"model": model,
             "messages": [{"role": "system", "content": SYSTEM},
@@ -214,10 +236,7 @@ def call_model(model, headers, transcript, tech):
                           + "\n\n---\nТехнический срез, посчитанный программой (ему доверяй):\n" + json.dumps(tech, ensure_ascii=False, indent=1)
                           + "\n\nРазбери встречу по схеме."}],
             "temperature": 0.2, "max_tokens": 16000, "response_format": {"type": "json_object"}}
-    try:
-        body.update(json.loads(os.environ.get("LLM_EXTRA_JSON") or "{}"))
-    except ValueError:
-        pass
+    body.update(extra_for(model))
     t0 = time.time()
     r = requests.post(okk.OR_URL + "/chat/completions", headers=headers, json=body, timeout=900)
     secs = round(time.time() - t0, 1)
